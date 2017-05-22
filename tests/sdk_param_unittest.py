@@ -39,13 +39,13 @@ class SDKParamTest(unittest.TestCase):
         try:
             self.ots_client.create_table('one', 'two', 'three')
             self.assertTrue(False)
-        except TypeError:
+        except OTSClientError:
             pass
 
         try:
             table_meta = TableMeta('test_table', ['PK1', 'STRING'])
             capacity_unit = CapacityUnit(10, 10)
-            self.ots_client.create_table(table_meta, capacity_unit)
+            self.ots_client.create_table(table_meta, TableOptions(), capacity_unit)
             self.assertTrue(False)
         except OTSClientError:
             pass
@@ -53,21 +53,21 @@ class SDKParamTest(unittest.TestCase):
         try:
             table_meta = TableMeta('test_table', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
             capacity_unit = CapacityUnit(10, None)
-            self.ots_client.create_table(table_meta, capacity_unit)
+            self.ots_client.create_table(table_meta, TableOptions(), capacity_unit)
             self.assertTrue(False)
         except OTSClientError:
             pass
 
         try:
             capacity_unit = CapacityUnit(10, 10)
-            self.ots_client.create_table('test_table', capacity_unit)
+            self.ots_client.create_table('test_table', TableOptions(), capacity_unit)
             self.assertTrue(False)
         except OTSClientError:
             pass
 
         try:
             table_meta = TableMeta('test_table', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
-            self.ots_client.create_table(table_meta, [1, 2])
+            self.ots_client.create_table(table_meta, TableOptions(), [1, 2])
             self.assertTrue(False)
         except OTSClientError:
             pass
@@ -94,14 +94,14 @@ class SDKParamTest(unittest.TestCase):
             pass
 
         try:
-            self.ots_client.update_table('test_table', (10, 10))
+            self.ots_client.update_table('test_table', TableOptions(), (10, 10))
             self.assertTrue(False)
         except OTSClientError:
             pass
 
         try:
             capacity_unit = CapacityUnit(None, None)
-            self.ots_client.update_table('test_table', capacity_unit)
+            self.ots_client.update_table('test_table', TableOptions(),capacity_unit)
             self.assertTrue(False)
         except OTSClientError:
             pass
@@ -127,8 +127,8 @@ class SDKParamTest(unittest.TestCase):
             pass
 
         try:
-            primary_key = {'PK1':'hello', 'PK2':100}
-            attribute_columns = {'COL1':'world', 'COL2':1000}
+            primary_key = [('PK1','hello'), ('PK2',100)]
+            attribute_columns = [('COL1','world'), ('COL2',1000)]
             condition = Condition('InvalidCondition')
             consumed = self.ots_client.put_row('test_table', condition, primary_key, attribute_columns)
             self.assertTrue(False)
@@ -136,8 +136,8 @@ class SDKParamTest(unittest.TestCase):
             pass
     
         try:
-            primary_key = {'PK1':'hello', 'PK2':100}
-            attribute_columns = {'COL1':'world', 'COL2':1000}
+            primary_key = [('PK1','hello'), ('PK2',100)]
+            attribute_columns = [('COL1','world'), ('COL2',1000)]
             consumed = self.ots_client.put_row('test_table', [RowExistenceExpectation.IGNORE], primary_key, attribute_columns)
             self.assertTrue(False)
         except:
@@ -172,28 +172,28 @@ class SDKParamTest(unittest.TestCase):
 
         try:
             condition = Condition(RowExistenceExpectation.IGNORE)
-            consumed = self.ots_client.update_row('test_table', condition, {'PK1' : 'STRING', 'PK2' : 'INTEGER'}, 'update_of_attribute_columns')
+            consumed = self.ots_client.update_row('test_table', condition, [('PK1', 'STRING'), ('PK2', 'INTEGER')], 'update_of_attribute_columns')
             self.assertTrue(False)
         except OTSClientError as e:
             pass
 
         try:
             condition = Condition(RowExistenceExpectation.IGNORE)
-            consumed = self.ots_client.update_row('test_table', condition, {'PK1' : 'STRING', 'PK2' : 'INTEGER'}, {'ncv' : 1})
+            consumed = self.ots_client.update_row('test_table', condition, [('PK1', 'STRING'), ('PK2', 'INTEGER')], [('ncv', 1)])
             self.assertTrue(False)
         except OTSClientError as e:
             pass
             
         try:
             condition = Condition(RowExistenceExpectation.IGNORE)
-            consumed = self.ots_client.update_row('test_table', condition, {'PK1' : 'STRING', 'PK2' : 'INTEGER'}, {'put' : []})
+            consumed = self.ots_client.update_row('test_table', condition, [('PK1', 'STRING'), ('PK2', 'INTEGER')], {'put' : []})
             self.assertTrue(False)
         except OTSClientError as e:
             pass
             
         try:
             condition = Condition(RowExistenceExpectation.IGNORE)
-            consumed = self.ots_client.update_row('test_table', condition, {'PK1' : 'STRING', 'PK2' : 'INTEGER'}, {'delete' : {}})
+            consumed = self.ots_client.update_row('test_table', condition, [('PK1', 'STRING'), ('PK2', 'INTEGER')], {'delete' : []})
             self.assertTrue(False)
         except OTSClientError as e:
             pass
@@ -288,12 +288,12 @@ class SDKParamTest(unittest.TestCase):
             pass
 
         try:
-            start_primary_key = {'PK1':'hello','PK2':100}
-            end_primary_key = {'PK1':INF_MAX,'PK2':INF_MIN}
+            start_primary_key = [('PK1','hello'),('PK2',100)]
+            end_primary_key = [('PK1',INF_MAX),('PK2',INF_MIN)]
             columns_to_get = ['COL1','COL2']
             response = self.ots_client.get_range('table_name', 'InvalidDirection', 
                         start_primary_key, end_primary_key, 
-                        columns_to_get, limit=100
+                        columns_to_get, limit=100, max_version=1
             )
             self.assertTrue(False)
         except OTSClientError:
@@ -301,15 +301,28 @@ class SDKParamTest(unittest.TestCase):
 
         try:
             start_primary_key = ['PK1','hello','PK2',100]
-            end_primary_key = {'PK1':INF_MAX, 'PK2':INF_MIN}
+            end_primary_key = [('PK1',INF_MAX), ('PK2',INF_MIN)]
             columns_to_get = ['COL1', 'COL2']
             response = self.ots_client.get_range('table_name', 'FORWARD', 
                         start_primary_key, end_primary_key, 
-                        columns_to_get, limit=100
+                        columns_to_get, limit=100, max_version=1
             )
             self.assertTrue(False)
         except:
             pass
+
+        try:
+            start_primary_key = [('PK1','hello'),('PK2',100)]
+            end_primary_key = [('PK1',INF_MAX), ('PK2',INF_MIN)]
+            columns_to_get = ['COL1', 'COL2']
+            response = self.ots_client.get_range('table_name', 'FORWARD', 
+                        start_primary_key, end_primary_key, 
+                        columns_to_get, limit=100, max_version=-1
+            )
+            self.assertTrue(False)
+        except:
+            pass
+
 
         try:
             response = self.ots_client.get_range('table_name', 'FORWARD', 
@@ -361,10 +374,10 @@ class SDKParamTest(unittest.TestCase):
 
     def test_column_condition(self):
         cond = RelationCondition("uid", 100, ComparatorType.EQUAL)
-        self.assertEqual(ColumnConditionType.RELATION_CONDITION, cond.get_type())
+        self.assertEqual(ColumnConditionType.SINGLE_COLUMN_CONDITION, cond.get_type())
         
         cond = CompositeCondition(LogicalOperator.AND)
-        self.assertEqual(ColumnConditionType.COMPOSITE_CONDITION, cond.get_type())
+        self.assertEqual(ColumnConditionType.COMPOSITE_COLUMN_CONDITION, cond.get_type())
        
 
     def test_relation_condition(self):

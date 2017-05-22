@@ -11,7 +11,7 @@ import ots2.protobuf.table_store_filter_pb2 as filter_pb2
 INT32_MAX = 2147483647
 INT32_MIN = -2147483648
 
-COLUMN_TYPE_MAP = {
+PRIMARY_KEY_TYPE_MAP = {
     'INTEGER'   : pb2.INTEGER,
     'STRING'    : pb2.STRING,
     'BINARY'    : pb2.BINARY,
@@ -135,8 +135,8 @@ class OTSProtoBufferEncoder:
             )
 
     def _get_column_type(self, type_str):
-        global COLUMN_TYPE_MAP
-        enum_map = COLUMN_TYPE_MAP
+        global PRIMARY_KEY_TYPE_MAP
+        enum_map = PRIMARY_KEY_TYPE_MAP
 
         proto_type = enum_map.get(type_str)
 
@@ -144,7 +144,7 @@ class OTSProtoBufferEncoder:
             return proto_type
         else:
             raise OTSClientError(
-                "column_type should be one of [%s], not %s" % (
+                "primary_key_type should be one of [%s], not %s" % (
                     ", ".join(enum_map.keys()), str(type_str)
                 )
             )

@@ -91,6 +91,9 @@ class PlainBufferBuilder:
     
     @staticmethod
     def compute_primary_key_size(primary_key):
+        if not isinstance(primary_key, list):
+            raise OTSClientError("Priamry key is not list, but is %s" % str(type(primary_key)))
+
         size = 1
         for pk in primary_key:
             size += PlainBufferBuilder.compute_primary_key_column_size(pk[0], pk[1])
@@ -121,7 +124,9 @@ class PlainBufferBuilder:
             size += 1
             for update_type in attribute_columns.keys():
                 columns = attribute_columns[update_type]
-                if isinstance(columns, list):
+                if isinstance(columns, str):
+                    size += PlainBufferBuilder.compute_column_size2(column, None, update_type)
+                elif isinstance(columns, list):
                     for column in columns:
                         if len(column) == 1:
                             size += PlainBufferBuilder.compute_column_size2(column[0], None, update_type)
@@ -191,6 +196,18 @@ class PlainBufferBuilder:
 
     @staticmethod
     def serialize_for_update_row(primary_key, attribute_columns):
+        if not isinstance(attribute_columns, dict):
+            raise OTSClientError("the attribute columns of UpdateRow is not dict, but is %s" % str(type(attribute_columns)))
+
+        for key in attribute_columns.keys():
+            if not isinstance(attribute_columns[key], list):
+                raise OTSClientError("the columns value of update-row must be list, but is %s" % 
+                                     str(type(attribute_columns.values)))
+            for cell in attribute_columns[key]:
+                if key.upper() != UpdateType.DELETE and key.upper() != UpdateType.DELETE_ALL and not isinstance(cell, tuple):
+                    raise OTSClientError("the cell of update-row must be tuple, but is %s" % 
+                                         str(type(cell)))
+
         buf_size = PlainBufferBuilder.compute_update_row_size(primary_key, attribute_columns)
         output_stream = PlainBufferOutputStream(buf_size)
         coded_output_stream = PlainBufferCodedOutputStream(output_stream)

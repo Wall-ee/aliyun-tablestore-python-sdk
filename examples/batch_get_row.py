@@ -34,11 +34,11 @@ def batch_get_row(ots_client):
         primary_key = [('gid',i), ('uid',i+1)]
         rows_to_get.append(primary_key)
 
-    request = MultiTableInBatchGetRowItem()
     cond = CompositeCondition(LogicalOperator.AND)
     cond.add_sub_condition(RelationCondition("name", "John", ComparatorType.EQUAL))
     cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
 
+    request = MultiTableInBatchGetRowItem()
     request.add(TableInBatchGetRowItem(table_name, rows_to_get, columns_to_get, cond, 1))
     request.add(TableInBatchGetRowItem('notExistTable', rows_to_get, columns_to_get, cond, 1))
 

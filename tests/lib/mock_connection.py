@@ -8,9 +8,10 @@ import urlparse
 
 import google.protobuf.text_format as text_format
 
+from ots2 import * 
 from ots2.metadata import *
 from ots2.error import *
-import ots2.protobuf.ots_protocol_2_pb2 as pb2
+import ots2.protobuf.table_store_pb2 as pb2
 
 
 class MockConnection:

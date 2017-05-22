@@ -239,6 +239,7 @@ class PlainBufferCodedOutputStream:
     def write_cell_name(self, name, cell_check_sum):
         self.write_tag(TAG_CELL_NAME)
         self.outputStream.write_raw_little_endian32(len(name))
+        #self.outputStream.write_raw_byte(name)
         self.outputStream.write_bytes(name)
         cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, name)
         return cell_check_sum
@@ -310,7 +311,7 @@ class PlainBufferCodedOutputStream:
             self.outputStream.write_bytes(value)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_BLOB)
             cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(value))
-            cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value)
+            cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value.decode("utf-8"))
         elif isinstance(value, bool):
             self.outputStream.write_raw_little_endian32(2)
             self.outputStream.write_raw_byte(VT_BOOLEAN)
@@ -439,7 +440,7 @@ class PlainBufferCodedOutputStream:
                     if isinstance(column, str):
                         row_check_sum = self.write_update_column(update_type, column, None, row_check_sum)
                     elif len(column) == 2:
-                        row_check_sum = self.write_update_column(update_type, column[0], column[1], row_check_sum)
+                        row_check_sum = self.write_update_column(update_type, column[0], (column[1], None), row_check_sum)
                     elif len(column) == 3:
                         row_check_sum = self.write_update_column(update_type, column[0], (column[1], column[2]), row_check_sum)
         return row_check_sum
