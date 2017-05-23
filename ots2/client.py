@@ -34,15 +34,15 @@ class OTSClient(object):
     protocol_class = OTSProtocol
     connection_pool_class = ConnectionPool 
 
-    def __init__(self, end_point, accessid, accesskey, instance_name, **kwargs):
+    def __init__(self, end_point, access_key_id, access_key_secret, instance_name, **kwargs):
         """
         初始化``OTSClient``实例。
 
         ``end_point``是OTS服务的地址（例如 'http://instance.cn-hangzhou.ots.aliyun.com:80'），必须以'http://'开头。
 
-        ``accessid``是访问OTS服务的accessid，通过官方网站申请或通过管理员获取。
+        ``access_key_id``是访问OTS服务的accessid，通过官方网站申请或通过管理员获取。
 
-        ``accesskey``是访问OTS服务的accesskey，通过官方网站申请或通过管理员获取。
+        ``access_key_secret``是访问OTS服务的accesskey，通过官方网站申请或通过管理员获取。
 
         ``instance_name``是要访问的实例名，通过官方网站控制台创建或通过管理员获取。
 
@@ -100,7 +100,7 @@ class OTSClient(object):
 
         # intialize protocol instance via user configuration
         self.protocol = self.protocol_class(
-            accessid, accesskey, instance_name, self.encoding, self.logger
+            access_key_id, access_key_secret, instance_name, self.encoding, self.logger
         )
         
         # initialize connection via user configuration
@@ -363,9 +363,9 @@ class OTSClient(object):
         ``response``为返回的结果，类型为ots2.metadata.BatchGetRowResponse
 
         示例：
-            cond = CompositeCondition(LogicalOperator.AND)
-            cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
-            cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
+            cond = CompositeColumnCondition(LogicalOperator.AND)
+            cond.add_sub_condition(SingleColumnCondition("index", 0, ComparatorType.EQUAL))
+            cond.add_sub_condition(SingleColumnCondition("addr", 'china', ComparatorType.EQUAL))
 
             request = BatchGetRowRequest()
             column_to_get = ['gid', 'uid', 'index']
@@ -406,21 +406,18 @@ class OTSClient(object):
             # put 
             row_items = []
             row = Row([('gid',0), ('uid', 0)], [('index', 6), ('addr', 'china')])
-            row_items.append(PutRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),
-                row))
+            row_items.append(PutRowItem(row,
+                Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("index", 0, ComparatorType.EQUAL))))
 
             # update
             row = Row([('gid',1), ('uid', 0)], {'put': [('index',9), ('addr', 'china')]})
-            row_items.append(UpdateRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),
-                row))
+            row_items.append(UpdateRowItem(row,
+                Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("index", 0, ComparatorType.EQUAL))))
 
             # delete
             row = Row([('gid', 2), ('uid', 0)])
-            row_items.append(DeleteRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 3, ComparatorType.EQUAL, False)),
-                row)
+            row_items.append(DeleteRowItem(row,
+                Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("index", 3, ComparatorType.EQUAL, False)))
 
             request = BatchWriteRowRequest()
             request.add(TableInBatchWriteRowItem('myTable0', row_items))

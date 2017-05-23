@@ -34,7 +34,7 @@ def update_row(ots_client):
         'DELETE_ALL' : [('mobile'), ('age')],
     }
     row = Row(primary_key, update_of_attribute_columns)
-    condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("age", 20, ComparatorType.EQUAL)) # update row only when this row is exist
+    condition = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("age", 20, ComparatorType.EQUAL)) # update row only when this row is exist
     consumed, return_row = ots_client.update_row(table_name, row, condition) 
     print u'Update succeed, consume %s write cu.' % consumed.write
 

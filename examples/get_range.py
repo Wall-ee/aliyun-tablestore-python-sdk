@@ -37,9 +37,9 @@ def get_range(ots_client):
     columns_to_get = []
     limit = 90
 
-    cond = CompositeCondition(LogicalOperator.AND)
-    cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
-    cond.add_sub_condition(RelationCondition("age", 50, ComparatorType.LESS_THAN))
+    cond = CompositeColumnCondition(LogicalOperator.AND)
+    cond.add_sub_condition(SingleColumnCondition("address", 'China', ComparatorType.EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("age", 50, ComparatorType.LESS_THAN))
 
     consumed, next_start_primary_key, row_list, next_token  = ots_client.get_range(
                 table_name, Direction.FORWARD, 
@@ -76,9 +76,9 @@ def xget_range(ots_client):
     inclusive_start_primary_key = [('uid',INF_MIN), ('gid',INF_MIN)]
     exclusive_end_primary_key = [('uid',INF_MAX), ('gid',INF_MAX)]
 
-    cond = CompositeCondition(LogicalOperator.AND)
-    cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
-    cond.add_sub_condition(RelationCondition("age", 50, ComparatorType.GREATER_EQUAL))
+    cond = CompositeColumnCondition(LogicalOperator.AND)
+    cond.add_sub_condition(SingleColumnCondition("address", 'China', ComparatorType.EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("age", 50, ComparatorType.GREATER_EQUAL))
      
     columns_to_get = []
     range_iter = ots_client.xget_range(
@@ -106,6 +106,6 @@ if __name__ == '__main__':
     time.sleep(3) # wait for table ready
     put_row(ots_client)
     get_range(ots_client)
-    #xget_range(ots_client)
+    xget_range(ots_client)
     delete_table(ots_client)
 

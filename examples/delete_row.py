@@ -30,7 +30,7 @@ def put_row(ots_client):
 def delete_row(ots_client):
     primary_key = [('gid',1), ('uid','101')]
     row = Row(primary_key)
-    condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("age", 25, ComparatorType.LESS_THAN))
+    condition = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("age", 25, ComparatorType.LESS_THAN))
     consumed, return_row = ots_client.delete_row(table_name, row, condition) 
     print u'Delete succeed, consume %s write cu.' % consumed.write
 

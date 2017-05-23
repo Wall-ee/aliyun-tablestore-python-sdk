@@ -215,13 +215,13 @@ class OTSProtoBufferEncoder:
             )
 
         # condition
-        if isinstance(column_condition, CompositeCondition):
+        if isinstance(column_condition, CompositeColumnCondition):
             proto.filter = self._make_composite_condition(column_condition)
-        elif isinstance(column_condition, RelationCondition):
+        elif isinstance(column_condition, SingleColumnCondition):
             proto.filter = self._make_relation_condition(column_condition)
         else:
             raise OTSClientError(
-                "expect CompositeCondition, RelationCondition but not %s"
+                "expect CompositeColumnCondition, SingleColumnCondition but not %s"
                 % column_condition.__class__.__name__
             )
 

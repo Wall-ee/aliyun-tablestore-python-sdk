@@ -33,7 +33,7 @@ def batch_write_row(ots_client):
         primary_key = [('gid',i), ('uid',i+1)]
         attribute_columns = {'put': [('name','somebody'+str(i)), ('address','somewhere'+str(i)), ('age',i)]}
         row = Row(primary_key, attribute_columns)
-        condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("age", i, ComparatorType.EQUAL))
+        condition = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("age", i, ComparatorType.EQUAL))
         item = UpdateRowItem(row, condition)
         put_row_items.append(item)
 

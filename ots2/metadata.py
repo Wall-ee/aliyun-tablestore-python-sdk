@@ -36,8 +36,8 @@ __all__ = [
     'ComparatorType',
     'ColumnConditionType',
     'ColumnCondition',
-    'CompositeCondition',
-    'RelationCondition',
+    'CompositeColumnCondition',
+    'SingleColumnCondition',
     'RowExistenceExpectation', 
 ]
 
@@ -195,7 +195,7 @@ class ColumnConditionType(object):
 class ColumnCondition(object):
     pass    
 
-class CompositeCondition(ColumnCondition):
+class CompositeColumnCondition(ColumnCondition):
     
     def __init__(self, combinator):
         self.sub_conditions = []
@@ -226,7 +226,7 @@ class CompositeCondition(ColumnCondition):
     def clear_sub_condition(self):
         self.sub_conditions = []
 
-class RelationCondition(ColumnCondition):
+class SingleColumnCondition(ColumnCondition):
    
     def __init__(self, column_name, column_value, comparator, pass_if_missing = True, latest_version_only = True):
         self.column_name = column_name

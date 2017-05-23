@@ -35,9 +35,9 @@ def batch_get_row(ots_client):
         primary_key = [('gid',i), ('uid',i+1)]
         rows_to_get.append(primary_key)
 
-    cond = CompositeCondition(LogicalOperator.AND)
-    cond.add_sub_condition(RelationCondition("name", "John", ComparatorType.EQUAL))
-    cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
+    cond = CompositeColumnCondition(LogicalOperator.AND)
+    cond.add_sub_condition(SingleColumnCondition("name", "John", ComparatorType.EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("address", 'China', ComparatorType.EQUAL))
 
     request = BatchGetRowRequest()
     request.add(TableInBatchGetRowItem(table_name, rows_to_get, columns_to_get, cond, 1))
@@ -53,14 +53,14 @@ def batch_get_row(ots_client):
     print 'Check first table\'s result:'     
     for item in table_result_0:
         if item.is_ok:
-            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key_columns, item.row.attribute_columns)
+            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key, item.row.attribute_columns)
         else:
             print 'Read failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 
     print 'Check second table\'s result:'
     for item in table_result_1:
         if item.is_ok:
-            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key_columns, item.row.attribute_columns)
+            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key, item.row.attribute_columns)
         else:
             print 'Read failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 

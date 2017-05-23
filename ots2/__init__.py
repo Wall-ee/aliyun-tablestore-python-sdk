@@ -40,8 +40,8 @@ __all__ = [
     'ComparatorType',
     'ColumnConditionType',
     'ColumnCondition',
-    'CompositeCondition',
-    'RelationCondition',
+    'CompositeColumnCondition',
+    'SingleColumnCondition',
     'RowExistenceExpectation',
 ]
 

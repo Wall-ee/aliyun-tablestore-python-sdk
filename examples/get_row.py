@@ -30,9 +30,9 @@ def get_row(ots_client):
     primary_key = [('uid',1), ('gid',101)]
     columns_to_get = ['name', 'address', 'age'] # given a list of columns to get, or empty list if you want to get entire row.
 
-    cond = CompositeCondition(LogicalOperator.AND)
-    cond.add_sub_condition(RelationCondition("age", 20, ComparatorType.EQUAL))
-    cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
+    cond = CompositeColumnCondition(LogicalOperator.AND)
+    cond.add_sub_condition(SingleColumnCondition("age", 20, ComparatorType.EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, cond, 1)
 
@@ -45,9 +45,9 @@ def get_row2(ots_client):
     primary_key = [('uid',1), ('gid',101)]
     columns_to_get = []
 
-    cond = CompositeCondition(LogicalOperator.AND)
-    cond.add_sub_condition(RelationCondition("age", 20, ComparatorType.EQUAL))
-    cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
+    cond = CompositeColumnCondition(LogicalOperator.AND)
+    cond.add_sub_condition(SingleColumnCondition("age", 20, ComparatorType.EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, cond, 1,
                                                           start_column = 'age', end_column = 'name')

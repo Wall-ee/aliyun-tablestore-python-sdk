@@ -30,14 +30,14 @@ def put_row(ots_client):
     print u'Write succeed, consume %s write cu.' % consumed.write
 
     row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
-    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, RelationCondition("age", 20, ComparatorType.EQUAL))
+    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, SingleColumnCondition("age", 20, ComparatorType.EQUAL))
     consumed, return_row = ots_client.put_row(table_name, row, condition)
     print u'Write succeed, consume %s write cu.' % consumed.write
 
     row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
 
     # 上面的age已经被修改为25了，现在我们继续期望age=20，TableStore将报错
-    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, RelationCondition("age", 20, ComparatorType.EQUAL))
+    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, SingleColumnCondition("age", 20, ComparatorType.EQUAL))
     try:
         consumed,return_row = ots_client.put_row(table_name, row, condition)
     except OTSServiceError, e:
