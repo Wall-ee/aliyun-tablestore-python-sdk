@@ -223,7 +223,7 @@ class PlainBufferCodedInputStream:
         row_list = []
         while not self.inputStream.is_at_end():
             (pk, attr) = self.read_row_without_header()
-            row_list.append((pk, attr))
+            row_list.append(Row(pk, attr))
         return row_list
 
 class PlainBufferCodedOutputStream:

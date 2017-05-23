@@ -22,23 +22,24 @@ def delete_table(ots_client):
 def put_row(ots_client):
     primary_key = [('gid',1), ('uid',101)]
     attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',20)]
+    row = Row(primary_key, attribute_columns)
 
     # Expect not exist: put it into table only when this row is not exist.
     condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST)
-    consumed,pk,attr = ots_client.put_row(table_name, condition, primary_key, attribute_columns)
+    consumed, return_row = ots_client.put_row(table_name, row, condition)
     print u'Write succeed, consume %s write cu.' % consumed.write
 
-    attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
+    row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
     condition = Condition(RowExistenceExpectation.EXPECT_EXIST, RelationCondition("age", 20, ComparatorType.EQUAL))
-    consumed,pk,attr = ots_client.put_row(table_name, condition, primary_key, attribute_columns)
+    consumed, return_row = ots_client.put_row(table_name, row, condition)
     print u'Write succeed, consume %s write cu.' % consumed.write
 
-    attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
+    row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
 
     # 上面的age已经被修改为25了，现在我们继续期望age=20，TableStore将报错
     condition = Condition(RowExistenceExpectation.EXPECT_EXIST, RelationCondition("age", 20, ComparatorType.EQUAL))
     try:
-        consumed,pk,attr = ots_client.put_row(table_name, condition, primary_key, attribute_columns)
+        consumed,return_row = ots_client.put_row(table_name, row, condition)
     except OTSServiceError, e:
         print str(e)
 

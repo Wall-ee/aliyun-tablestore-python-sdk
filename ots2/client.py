@@ -247,14 +247,14 @@ class OTSClient(object):
         返回：本次操作消耗的CapacityUnit、主键列和属性列。
 
         ``consumed``表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
-        ``primary_key_columns``表示主键列，类型为dict，如：{'PK0':value0, 'PK1':value1}。
-        ``attribute_columns``表示属性列，类型为dict，如：{'COL0':value0, 'COL1':value1}。
+        ``return_row``表示行数据，包括主键列和属性列，类型都为list，如：[('PK0',value0), ('PK1',value1)]。
+        ``next_token``表示宽行读取时下一次读取的位置，编码的二进制。
 
         示例：
 
-            primary_key = {'gid':1, 'uid':101}
+            primary_key = [('gid',1), ('uid',101)]
             columns_to_get = ['name', 'address', 'age']
-            consumed, primary_key_columns, attribute_columns = ots_client.get_row('myTable', primary_key, columns_to_get)
+            consumed, return_row, next_token = ots_client.get_row('myTable', primary_key, columns_to_get)
         """
 
         return self._request_helper(
@@ -263,91 +263,95 @@ class OTSClient(object):
                     start_column, end_column, token
         )
 
-    def put_row(self, table_name, condition, primary_key, attribute_columns, return_type = None):
+    def put_row(self, table_name, row, condition = None, return_type = None):
         """
         说明：写入一行数据。返回本次操作消耗的CapacityUnit。
 
         ``table_name``是对应的表名。
+        ``row``是行数据，包括主键和属性列。
         ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``primary_key``表示主键，类型为dict。
-        ``attribute_columns``表示属性列，类型为dict。
+        ``return_type``表示返回类型，目前仅支持返回PrimaryKey，一般用于主键列自增中。
 
-        返回：本次操作消耗的CapacityUnit。
+        返回：本次操作消耗的CapacityUnit和需要返回的行数据。
 
         consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        return_row表示返回的行数据，可能包括主键、属性列。
 
         示例：
 
-            primary_key = {'gid':1, 'uid':101}
-            attribute_columns = {'name':'张三', 'mobile':111111111, 'address':'中国A地', 'age':20}
+            primary_key = [('gid',1), ('uid',101)]
+            attribute_columns = [('name','张三'), ('mobile',111111111), ('address','中国A地'), ('age',20)]
+            row = Row(primary_key, attribute_columns)
             condition = Condition('EXPECT_NOT_EXIST')
-            consumed = ots_client.put_row('myTable', condition, primary_key, attribute_columns)
+            consumed, return_row = ots_client.put_row('myTable', row, condition)
         """
 
         return self._request_helper(
-                    'PutRow', table_name, condition, primary_key, attribute_columns, return_type
+                    'PutRow', table_name, row, condition, return_type
         )
     
-    def update_row(self, table_name, condition, primary_key, update_of_attribute_columns, return_type = None):
+    def update_row(self, table_name, row, condition, return_type = None):
         """
         说明：更新一行数据。
 
         ``table_name``是对应的表名。
+        ``row``表示更新的行数据，包括主键列和属性列，主键列是list；属性列是dict。
         ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``primary_key``表示主键，类型为dict。
-        ``update_of_attribute_columns``表示属性列，类型为dict，可以包含put和delete操作。其中put是dict
-        表示属性列的写入；delete是list，表示要删除的属性列的列名，见示例。
 
-        返回：本次操作消耗的CapacityUnit。
+        返回：本次操作消耗的CapacityUnit和需要返回的行数据return_row
 
         consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        return_row表示需要返回的行数据。
 
         示例：
 
-            primary_key = {'gid':1, 'uid':101}
+            primary_key = [('gid',1), ('uid',101)]
             update_of_attribute_columns = {
-                'put' : {'name':'张三丰', 'address':'中国B地'},
-                'delete' : ['mobile', 'age'],
+                'put' : [('name','张三丰'), ('address','中国B地')],
+                'delete' : [('mobile', 1493725896147)],
+                'delete_all' : [('age')]
             }
+            row = Row(primary_key, update_of_attribute_columns)
             condition = Condition('EXPECT_EXIST')
-            consumed = ots_client.update_row('myTable', condition, primary_key, update_of_attribute_columns) 
+            consumed = ots_client.update_row('myTable', row, condition) 
         """
 
         return self._request_helper(
-                    'UpdateRow', table_name, condition, primary_key, update_of_attribute_columns, return_type
+                    'UpdateRow', table_name, row, condition, return_type
         )
 
-    def delete_row(self, table_name, condition, primary_key, return_type = None):
+    def delete_row(self, table_name, row, condition, return_type = None):
         """
         说明：删除一行数据。
 
         ``table_name``是对应的表名。
+        ``row``表示行数据，在delete_row仅包含主键。
         ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``primary_key``表示主键，类型为dict。
 
-        返回：本次操作消耗的CapacityUnit。
+        返回：本次操作消耗的CapacityUnit和需要返回的行数据return_row
 
         consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        return_row表示需要返回的行数据。
 
         示例：
 
-            primary_key = {'gid':1, 'uid':101}
+            primary_key = [('gid',1), ('uid',101)]
+            row = Row(primary_key)
             condition = Condition('IGNORE')
-            consumed = ots_client.delete_row('myTable', condition, primary_key) 
+            consumed, return_row = ots_client.delete_row('myTable', row, condition) 
         """
 
         return self._request_helper(
-                    'DeleteRow', table_name, condition, primary_key, return_type
+                    'DeleteRow', table_name, row, condition, return_type
         )
 
     def batch_get_row(self, request):
         """
         说明：批量获取多行数据。
-        方式一:
-        request = MultiTableInBatchGetRowItem()
+        request = BatchGetRowRequest()
 
         request.add(TableInBatchGetRowItem(myTable0, primary_keys, column_to_get=None, column_filter=None))
         request.add(TableInBatchGetRowItem(myTable1, primary_keys, column_to_get=None, column_filter=None))
@@ -356,212 +360,82 @@ class OTSClient(object):
 
         response = ots_client.batch_get_row(request)
 
-        ``response``为返回的结果，类型为ots2.metadata.MultiTableInBatchGetRowResult
+        ``response``为返回的结果，类型为ots2.metadata.BatchGetRowResponse
 
         示例：
             cond = CompositeCondition(LogicalOperator.AND)
             cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
             cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
 
-            request = MultiTableInBatchGetRowItem()
+            request = BatchGetRowRequest()
             column_to_get = ['gid', 'uid', 'index']
 
             primary_keys = []
-            primary_keys.append({'gid':0, 'uid':0})
-            primary_keys.append({'gid':0, 'uid':1})
-            primary_keys.append({'gid':0, 'uid':2})
+            primary_keys.append([('gid',0), ('uid',0)])
+            primary_keys.append([('gid',0), ('uid',1)])
+            primary_keys.append([('gid',0), ('uid',2)])
             request.add(TableInBatchGetRowItem('myTable0', primary_keys, column_to_get, cond))
 
             primary_keys = []
-            primary_keys.append({'gid':0, 'uid':0})
-            primary_keys.append({'gid':1, 'uid':0})
-            primary_keys.append({'gid':2, 'uid':0})
+            primary_keys.append([('gid',0), ('uid',0)])
+            primary_keys.append([('gid',1), ('uid',0)])
+            primary_keys.append([('gid',2), ('uid',0)])
             request.add(TableInBatchGetRowItem('myTable1', primary_keys, column_to_get, cond))
 
             result = ots_client.batch_get_row(request)
 
             table0 = result.get_result_by_table('myTable0')
             table1 = result.get_result_by_table('myTable1')
-
-        方式二: 这种方式不支持column_filter，而且这种方式在未来会被取消，该方法保留只是为了兼容以前的老版本，请使用方式一
-
-        ``batch_list``表示获取多行的条件列表，格式如下：
-        [
-            (table_name0, [row0_primary_key, row1_primary_key, ...], [column_name0, column_name1, ...]),
-            (table_name1, [row0_primary_key, row1_primary_key, ...], [column_name0, column_name1, ...]),
-            ...
-        ]
-        其中，row0_primary_key, row1_primary_key为主键，类型为dict。
-
-        返回：对应行的结果列表。
-
-        ``response_rows_list``为返回的结果列表，与请求的顺序一一对应，格式如下：
-        [
-            [row_data_item0, row_data_item1, ...],      # for table_name0
-            [row_data_item0, row_data_item1, ...],      # for table_name1
-            ...
-        ]
-        其中，row_data_item0, row_data_item1为ots2.metadata.RowDataItem的实例。
-
-        示例：
-
-            row1_primary_key = {'gid':1, 'uid':101}
-            row2_primary_key = {'gid':2, 'uid':202}
-            row3_primary_key = {'gid':3, 'uid':303}
-            columns_to_get = ['name', 'address', 'mobile', 'age']
-            batch_list = [('myTable', [row1_primary_key, row2_primary_key, row3_primary_key], columns_to_get)]
-            batch_list = [('notExistTable', [row1_primary_key, row2_primary_key, row3_primary_key], columns_to_get)]
-            batch_get_response = ots_client.batch_get_row(batch_list) 
         """
-
-        deprecated = None
-        if isinstance(request, list):
-            deprecated = True
-
         response = self._request_helper('BatchGetRow', request)
-
-        if deprecated:
-            return response
-        else:
-            return MultiTableInBatchGetRowResult(response)
+        return BatchGetRowResponse(response)
 
     def batch_write_row(self, request):
         """
         说明：批量修改多行数据。
-        方式一:
         request = MiltiTableInBatchWriteRowItem()
 
-        request.add(TableInBatchWriteRowItem(table0, put=put_row_items, update=update_row_items, delete=delete_row_items))
-        request.add(TableInBatchWriteRowItem(table1, put=put_row_items, update=update_row_items, delete=delete_row_items))
-        request.add(TableInBatchWriteRowItem(table2, put=put_row_items, update=update_row_items, delete=delete_row_items))
-        request.add(TableInBatchWriteRowItem(table3, put=put_row_items, update=update_row_items, delete=delete_row_items))
+        request.add(TableInBatchWriteRowItem(table0, row_items))
+        request.add(TableInBatchWriteRowItem(table1, row_items))
 
         response = ots_client.batch_write_row(request)
 
-        其中，put_row_items, 是ots2.metadata.PutRowItem类的实例列表；
-              update_row_items, 是ots2.metadata.UpdateRowItem类的实例列表；
-              delete_row_items, 是ots2.metadata.DeleteRowItem类的实例列表。
-        
-        ``response``为返回的结果，类型为ots2.metadata.MultiTableInBatchWriteRowResult
+        ``response``为返回的结果，类型为ots2.metadata.BatchWriteRowResponse
 
         示例：
             # put 
-            put_row_items = []
-            put_row_items.append(PutRowItem(
+            row_items = []
+            row = Row([('gid',0), ('uid', 0)], [('index', 6), ('addr', 'china')])
+            row_items.append(PutRowItem(
                 Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),
-                {'gid':0, 'uid':0},
-                {'index':6, 'addr':'china'}))
-
-            put_row_items.append(PutRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL)),
-                {'gid':0, 'uid':1},
-                {'index':7, 'addr':'china'}))
+                row))
 
             # update
-            update_row_items = []
-            update_row_items.append(UpdateRowItem(
+            row = Row([('gid',1), ('uid', 0)], {'put': [('index',9), ('addr', 'china')]})
+            row_items.append(UpdateRowItem(
                 Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),
-                {'gid':1, 'uid':0},
-                {
-                    'put': {'index':9, 'addr':'china'}
-                }))
-
-            update_row_items.append(UpdateRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL)),
-                {'gid':2, 'uid':1},
-                {
-                    'put': {'index':10, 'addr':'china'}
-                }))
+                row))
 
             # delete
-            delete_row_items = []
-            delete_row_items.append(DeleteRowItem(
+            row = Row([('gid', 2), ('uid', 0)])
+            row_items.append(DeleteRowItem(
                 Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 3, ComparatorType.EQUAL, False)),
-                {'gid':2, 'uid':0}))
+                row)
 
-            delete_row_items.append(DeleteRowItem(
-                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 4, ComparatorType.EQUAL, False)),
-                {'gid':2, 'uid':1}))
-
-            request = MultiTableInBatchWriteRowItem()
-            request.add(TableInBatchWriteRowItem('myTable0', put=put_row_items, update=update_row_items, delete=delete_row_items))
-            request.add(TableInBatchWriteRowItem('myTable1', put=put_row_items, update=update_row_items, delete=delete_row_items))
+            request = BatchWriteRowRequest()
+            request.add(TableInBatchWriteRowItem('myTable0', row_items))
+            request.add(TableInBatchWriteRowItem('myTable1', row_items))
 
             result = self.client_test.batch_write_row(request)
 
             r0 = result.get_put_by_table('myTable0')
             r1 = result.get_put_by_table('myTable1')
 
-        方式二: 这种方式在未来会被取消，该方法保留只是为了兼容以前的老版本，请使用方式一
-
-        ``batch_list``表示获取多行的条件列表，格式如下：
-        [
-            {
-                'table_name':table_name0,
-                'put':[put_row_item, ...],
-                'update':[update_row_item, ...],
-                'delete':[delete_row_item, ..]
-            },
-            {
-                'table_name':table_name1,
-                'put':[put_row_item, ...],
-                'update':[update_row_item, ...],
-                'delete':[delete_row_item, ..]
-            },
-            ...
-        ]
-        其中，put_row_item, 是ots2.metadata.PutRowItem类的实例；
-              update_row_item, 是ots2.metadata.UpdateRowItem类的实例；
-              delete_row_item, 是ots2.metadata.DeleteRowItem类的实例。
-
-        返回：对应行的修改结果列表。
-
-        ``response_items_list``为返回的结果列表，与请求的顺序一一对应，格式如下：
-        [
-            {                                       # for table_name0
-                'put':[put_row_resp, ...],
-                'update':[update_row_resp, ...],
-                'delete':[delete_row_resp, ..])
-            },
-            {                                       # for table_name1
-                'put':[put_row_resp, ...],
-                'update':[update_row_resp, ...],
-                'delete':[delete_row_resp, ..]
-            },
-            ...
-        ]
-        其中put_row_resp，update_row_resp和delete_row_resp都是ots2.metadata.BatchWriteRowResponseItem类的实例。
-
-        示例：
-
-            primary_key = {'gid':2, 'uid':202}
-            attribute_columns = {'name':'李四', 'address':'中国某地', 'age':20}
-            condition = Condition('EXPECT_NOT_EXIST')
-            put_row_item = PutRowItem(condition, primary_key, attribute_columns)
-            
-            primary_key = {'gid':3, 'uid':303}
-            condition = Condition('IGNORE')
-            update_of_attribute_columns = {
-                'put' : {'name':'张三', 'address':'中国某地'},
-                'delete' : ['mobile', 'age'],
-            }
-            update_row_item = UpdateRowItem(condition, primary_key, update_of_attribute_columns)
-            
-            primary_key = {'gid':4, 'uid':404}
-            condition = Condition('IGNORE')
-            delete_row_item = DeleteRowItem(condition, primary_key)
-            
-            table_item1  = {'table_name':'myTable', 'put':[put_row_item], 'update':[update_row_item], 'delete':[delete_row_item]}
-            table_item2  = {'table_name':'notExistTable', 'put':[put_row_item], 'update':[update_row_item], 'delete':[delete_row_item]}
-            batch_list = [table_item1, table_item2]
-            batch_write_response = ots_client.batch_write_row(batch_list) 
-
-
         """
 
         response = self._request_helper('BatchWriteRow', request)
         
-        return MultiTableInBatchWriteRowResult(request, response)
+        return BatchWriteRowResponse(request, response)
 
 
     def get_range(self, table_name, direction, 
@@ -585,17 +459,22 @@ class OTSClient(object):
         ``columns_to_get``是可选参数，表示要获取的列的名称列表，类型为list；如果不填，表示获取所有列。
         ``limit``是可选参数，表示最多读取多少行；如果不填，则没有限制。
         ``column_filter``是可选参数，表示读取指定条件的行
+        ``max_version``是可选参数，表示返回的最大版本数目，与time_range必须存在一个。
+        ``time_range``是可选参数，表示返回的版本的范围，于max_version必须存在一个。
+        ``start_column``是可选参数，用于宽行读取，表示本次读取的起始列。
+        ``end_column``是可选参数，用于宽行读取，表示本次读取的结束列。
+        ``token``是可选参数，用于宽行读取，表示本次读取的起始列位置，内容被二进制编码，来源于上次请求的返回结果中。
 
         返回：符合条件的结果列表。
 
         ``consumed``表示本次操作消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
         ``next_start_primary_key``表示下次get_range操作的起始点的主健列，类型为dict。
-        ``row_list``表示本次操作返回的行数据列表，格式为：[(primary_key_columns，attribute_columns), ...]。
+        ``row_list``表示本次操作返回的行数据列表，格式为：[Row, ...]。
 
         示例：
 
-            inclusive_start_primary_key = {'gid':1, 'uid':INF_MIN} 
-            exclusive_end_primary_key = {'gid':4, 'uid':INF_MAX} 
+            inclusive_start_primary_key = [('gid',1), ('uid',INF_MIN)] 
+            exclusive_end_primary_key = [('gid',4), ('uid',INF_MAX)] 
             columns_to_get = ['name', 'address', 'mobile', 'age']
             consumed, next_start_primary_key, row_list = ots_client.get_range(
                         'myTable', 'FORWARD', 
@@ -636,18 +515,23 @@ class OTSClient(object):
         ``columns_to_get``是可选参数，表示要获取的列的名称列表，类型为list；如果不填，表示获取所有列。
         ``count``是可选参数，表示最多读取多少行；如果不填，则尽量读取整个范围内的所有行。
         ``column_filter``是可选参数，表示读取指定条件的行
+        ``max_version``是可选参数，表示返回的最大版本数目，与time_range必须存在一个。
+        ``time_range``是可选参数，表示返回的版本的范围，于max_version必须存在一个。
+        ``start_column``是可选参数，用于宽行读取，表示本次读取的起始列。
+        ``end_column``是可选参数，用于宽行读取，表示本次读取的结束列。
+        ``token``是可选参数，用于宽行读取，表示本次读取的起始列位置，内容被二进制编码，来源于上次请求的返回结果中。
 
         返回：符合条件的结果列表。
 
         ``range_iterator``用于获取符合范围条件的行数据的iterator，每次取出的元素格式为：
-        (primary_key_columns，attribute_columns)。其中，primary_key_columns为主键列，dict类型，
-        attribute_columns为属性列，dict类型。其它用法见iter类型说明。
+        row。其中，row.primary_key为主键列，list类型，
+        row.attribute_columns为属性列，list类型。其它用法见iter类型说明。
 
         示例：
 
             consumed_counter = CapacityUnit(0, 0)
-            inclusive_start_primary_key = {'gid':1, 'uid':INF_MIN} 
-            exclusive_end_primary_key = {'gid':4, 'uid':INF_MAX} 
+            inclusive_start_primary_key = [('gid',1), ('uid',INF_MIN)] 
+            exclusive_end_primary_key = [('gid',4), ('uid',INF_MAX)] 
             columns_to_get = ['name', 'address', 'mobile', 'age']
             range_iterator = client.xget_range(
                         'myTable', Direction.FORWARD, 

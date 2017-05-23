@@ -24,25 +24,28 @@ def batch_write_row(ots_client):
     for i in range(0, 10):
         primary_key = [('gid',i), ('uid',i+1)]
         attribute_columns = [('name','somebody'+str(i)), ('address','somewhere'+str(i)), ('age',i)]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        item = RowItem(BatchWriteRowType.PUT, condition, primary_key, attribute_columns)
+        item = PutRowItem(row, condition)
         put_row_items.append(item)
 
     for i in range(10, 20):
         primary_key = [('gid',i), ('uid',i+1)]
         attribute_columns = {'put': [('name','somebody'+str(i)), ('address','somewhere'+str(i)), ('age',i)]}
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("age", i, ComparatorType.EQUAL))
-        item = RowItem(BatchWriteRowType.UPDATE, condition, primary_key, attribute_columns)
+        item = UpdateRowItem(row, condition)
         put_row_items.append(item)
 
     delete_row_items = []
     for i in range(10, 20):
         primary_key = [('gid',i), ('uid',i+1)]
+        row = Row(primary_key)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        item = RowItem(BatchWriteRowType.DELETE, condition, primary_key, None)
+        item = DeleteRowItem(row, condition)
         delete_row_items.append(item)
 
-    request = MultiTableInBatchWriteRowItem()
+    request = BatchWriteRowRequest()
     request.add(TableInBatchWriteRowItem(table_name, put_row_items))
     request.add(TableInBatchWriteRowItem('notExistTable', delete_row_items))
     result = ots_client.batch_write_row(request)
@@ -53,21 +56,21 @@ def batch_write_row(ots_client):
     for item in succ:
         print 'Put succeed, consume %s write cu.' % item.consumed.write
     for item in fail:
-       print 'Put failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
+        print 'Put failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 
     print 'check first table\'s update results:'
     succ, fail = result.get_update()
     for item in succ:
         print 'Update succeed, consume %s write cu.' % item.consumed.write
     for item in fail:
-       print 'Update failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
+        print 'Update failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 
     print 'check second table\'s delete results:'
     succ, fail = result.get_delete()
     for item in succ:
         print 'Delete succeed, consume %s write cu.' % item.consumed.write
     for item in fail:
-       print 'Delete failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
+        print 'Delete failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 
 if __name__ == '__main__':
     ots_client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE)

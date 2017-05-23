@@ -22,8 +22,9 @@ def put_row(ots_client):
     for i in range(0, 10):
         primary_key = [('gid',i), ('uid',i+1)]
         attribute_columns = [('name','John'), ('mobile',i), ('address','China'), ('age',i)]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST) # Expect not exist: put it into table only when this row is not exist.
-        consumed,pk,attr = ots_client.put_row(table_name, condition, primary_key, attribute_columns)
+        consumed, return_row = ots_client.put_row(table_name, row, condition)
         print u'Write succeed, consume %s write cu.' % consumed.write
 
 def batch_get_row(ots_client):
@@ -38,7 +39,7 @@ def batch_get_row(ots_client):
     cond.add_sub_condition(RelationCondition("name", "John", ComparatorType.EQUAL))
     cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
 
-    request = MultiTableInBatchGetRowItem()
+    request = BatchGetRowRequest()
     request.add(TableInBatchGetRowItem(table_name, rows_to_get, columns_to_get, cond, 1))
     request.add(TableInBatchGetRowItem('notExistTable', rows_to_get, columns_to_get, cond, 1))
 
@@ -52,14 +53,14 @@ def batch_get_row(ots_client):
     print 'Check first table\'s result:'     
     for item in table_result_0:
         if item.is_ok:
-            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.primary_key_columns, item.attribute_columns)
+            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key_columns, item.row.attribute_columns)
         else:
             print 'Read failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 
     print 'Check second table\'s result:'
     for item in table_result_1:
         if item.is_ok:
-            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.primary_key_columns, item.attribute_columns)
+            print 'Read succeed, PrimaryKey: %s, Attributes: %s' % (item.row.primary_key_columns, item.row.attribute_columns)
         else:
             print 'Read failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
 

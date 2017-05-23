@@ -27,113 +27,113 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         # 注入一行 index = 0
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0)]
-        condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
-
+        row = Row(primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row)
 
         attribute_columns = {
             'put': [('index' , 0)]
         }
         # 注入一行，条件是index = 1时，期望写入失败
+        row.attribute_columns = attribute_columns
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index = 0时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         # 注入一行，条件是addr = china时，因为该列不存在，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("addr", "china", ComparatorType.EQUAL, False))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 再次注入一行，条件是addr = china时，同时设置如果列不存在则不检查，期望写入失败
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("addr", "china", ComparatorType.EQUAL, True))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## NOT_EQUAL
 
         # 注入一行，条件是index != 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.NOT_EQUAL))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index != 1时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.NOT_EQUAL))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## GREATER_THAN
 
         # 注入一行，条件是index > 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.GREATER_THAN))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index > -1时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", -1, ComparatorType.GREATER_THAN))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## GREATER_EQUAL
 
         # 注入一行，条件是index >= 1时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.GREATER_EQUAL))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index >= 0时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.GREATER_EQUAL))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## LESS_THAN
 
         # 注入一行，条件是index < 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.LESS_THAN))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index < 1 时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.LESS_THAN))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## LESS_EQUAL
 
         # 注入一行，条件是index <= -1时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", -1, ComparatorType.LESS_EQUAL))
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index <= 0 时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.LESS_EQUAL))
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## COMPOSITE_CONDITION
-        attribute_columns = {
+        row.attribute_columns = {
             'put': [('index',0), ('addr','china')]
         }
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## AND
 
@@ -144,7 +144,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -154,7 +154,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## NOT
 
@@ -167,7 +167,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(sub_cond)
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -181,7 +181,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(sub_cond)
 
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
         ## OR
 
@@ -192,7 +192,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.update_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -202,7 +202,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.update_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.update_row(table_name, row, condition)
 
     def test_put_row(self):
         """调用PutRow API, 构造不同的Condition"""
@@ -220,107 +220,108 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         # 注入一行 index = 0
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0)]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         # 注入一行，条件是index = 1时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index = 0时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         # 注入一行，条件是addr = china时，因为该列不存在，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("addr", "china", ComparatorType.EQUAL, False))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 再次注入一行，条件是addr = china时，同时设置如果列不存在则不检查，期望写入失败
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("addr", "china", ComparatorType.EQUAL, True))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## NOT_EQUAL
 
         # 注入一行，条件是index != 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.NOT_EQUAL))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index != 1时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.NOT_EQUAL))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## GREATER_THAN
 
         # 注入一行，条件是index > 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.GREATER_THAN))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index > -1时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", -1, ComparatorType.GREATER_THAN))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## GREATER_EQUAL
 
         # 注入一行，条件是index >= 1时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.GREATER_EQUAL))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index >= 0时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.GREATER_EQUAL))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## LESS_THAN
 
         # 注入一行，条件是index < 0时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.LESS_THAN))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index < 1 时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.LESS_THAN))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## LESS_EQUAL
 
         # 注入一行，条件是index <= -1时，期望写入失败
         try:
             condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", -1, ComparatorType.LESS_EQUAL))
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
         # 注入一行，条件是index <= 0 时，期望写入成功
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.LESS_EQUAL))
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## COMPOSITE_CONDITION
-        attribute_columns = [('index',0), ('addr','china')]
+        row.attribute_columns = [('index',0), ('addr','china')]
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## AND
 
@@ -331,7 +332,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -341,7 +342,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## NOT
 
@@ -354,7 +355,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(sub_cond)
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -368,7 +369,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(sub_cond)
 
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## OR
 
@@ -379,7 +380,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
             cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
             condition = Condition(RowExistenceExpectation.IGNORE, cond)
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
             self.assertTrue(False)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
@@ -389,7 +390,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
     def test_get_row(self):
         """调用GetRow API, 构造不同的Condition"""
@@ -403,8 +404,9 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
  
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## COMPOSITE_CONDITION
         ## AND
@@ -414,16 +416,16 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.NOT_EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
 
-        cu, pk, attr,token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row,token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
         # 读取一行数据，(index == 0 & addr == china), 期望读取成功
         cond = CompositeCondition(LogicalOperator.AND)
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
 
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         ## OR
 
@@ -432,16 +434,16 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.NOT_EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
         # 读取一行数据，(index != 0 or addr == china), 期望读取成功
         cond = CompositeCondition(LogicalOperator.OR)
         cond.add_sub_condition(RelationCondition("index", 0, ComparatorType.NOT_EQUAL))
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
 
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         ## NOT
 
@@ -452,8 +454,8 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         sub_cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.EQUAL))
         cond.add_sub_condition(sub_cond)
 
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
         # 读取一行数据，!(index != 0 & addr != china), 期望读取成功
         cond = CompositeCondition(LogicalOperator.NOT)
@@ -462,40 +464,40 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         sub_cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
         cond.add_sub_condition(sub_cond)
 
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         ## RELATION_CONDITION
 
         # 读取一行数据，index != 0, 期望读取失败
         cond = RelationCondition("index", 0, ComparatorType.NOT_EQUAL)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
         # 读取一行数据, index == 0, 期望读取成功
         cond = RelationCondition("index", 0, ComparatorType.EQUAL)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         # 读取一行数据, index >= 0, 期望读取成功
         cond = RelationCondition("index", 0, ComparatorType.GREATER_EQUAL)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         # 读取一行数据, index <= 0, 期望读取成功
         cond = RelationCondition("index", 0, ComparatorType.LESS_EQUAL)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(primary_key, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
 
         # 读取一行数据，index > 0, 期望读取失败
         cond = RelationCondition("index", 0, ComparatorType.GREATER_THAN)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
         # 读取一行数据，index < 0, 期望读取失败
         cond = RelationCondition("index", 0, ComparatorType.LESS_THAN)
-        cu, pk, attr, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
-        self.assertEqual(None, pk)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
 
     def test_delete_row(self):
         """调用DeleteRow API, 构造不同的Condition"""
@@ -510,8 +512,9 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         # 注入一行 index = 0
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0)]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+        self.client_test.put_row(table_name, row, condition)
 
         ## RELACTION_CONDITION
 
@@ -519,7 +522,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.LESS_THAN))
 
         try:
-            self.client_test.delete_row(table_name, condition, primary_key)
+            self.client_test.delete_row(table_name, row, condition)
         except OTSServiceError, e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
@@ -530,7 +533,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
         try:
-             self.client_test.delete_row(table_name, condition, primary_key)
+             self.client_test.delete_row(table_name, row, condition)
         except OTSServiceError, e:
              self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
@@ -539,7 +542,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         cond.add_sub_condition(RelationCondition("addr", 'china', ComparatorType.NOT_EQUAL))
 
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
-        self.client_test.delete_row(table_name, condition, primary_key)
+        self.client_test.delete_row(table_name, row, condition)
 
 
     def test_batch_write_row(self): 
@@ -557,53 +560,59 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',1)]
         attribute_columns = [('index',1), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',2)]
         attribute_columns = [('index',2), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',3)]
         attribute_columns = [('index',3), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
         primary_key = [('gid',0), ('uid',4)]
         attribute_columns = [('index',4), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
         primary_key = [('gid',0), ('uid',5)]
         attribute_columns = [('index',5), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
 
         # put
         put_row_items = []
-        put_row_items.append(PutRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',0)], 
-            [('index',6), ('addr','china')]))
+        put_row_items.append(PutRowItem(                
+                Row([('gid',0), ('uid',0)], 
+                    [('index',6), ('addr','china')]),
+                Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL))))
 
         put_row_items.append(PutRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',1)], 
-            [('index',7), ('addr','china')]))
+            Row([('gid',0), ('uid',1)], 
+                [('index',7), ('addr','china')]),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL))))
 
-        put_row_items.append(PutRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 2, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',2)], 
-            [('index',8), ('addr','china')]))
+        put_row_items.append(PutRowItem(                
+            Row([('gid',0), ('uid',2)], 
+                [('index',8), ('addr','china')]),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 2, ComparatorType.EQUAL))))
 
-        batch_list = MultiTableInBatchWriteRowItem()
+        batch_list = BatchWriteRowRequest()
         batch_list.add(TableInBatchWriteRowItem('myTable0', put_row_items))
         batch_list.add(TableInBatchWriteRowItem('myTable1', put_row_items))
 
@@ -633,30 +642,30 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         # update
         update_row_items = []
-        update_row_items.append(UpdateRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',0)], 
-            {
-                'put': [('index',9), ('addr','china')]
-            }))
+        update_row_items.append(UpdateRowItem(                
+            Row([('gid',0), ('uid',0)], 
+                {
+                        'put': [('index',9), ('addr','china')]
+                }),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 0, ComparatorType.EQUAL))))
+
+        update_row_items.append(UpdateRowItem(                
+            Row([('gid',0), ('uid',1)], 
+                {
+                        'put': [('index',10), ('addr','china')]
+                        }),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL))))
+
 
         update_row_items.append(UpdateRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 1, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',1)], 
-            {
-                'put': [('index',10), ('addr','china')]
-            }))
-
-
-        update_row_items.append(UpdateRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 2, ComparatorType.EQUAL)),  
-            [('gid',0), ('uid',2)], 
+            Row([('gid',0), ('uid',2)], 
             {
                 'put': [('index',11), ('addr','china')]
-            }))
+            }),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 2, ComparatorType.EQUAL))))
 
 
-        batch_list = MultiTableInBatchWriteRowItem()
+        batch_list = BatchWriteRowRequest()
         batch_list.add(TableInBatchWriteRowItem('myTable0', update_row_items))
         batch_list.add(TableInBatchWriteRowItem('myTable1', update_row_items))
 
@@ -686,19 +695,19 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         # delete
         delete_row_items = []
-        delete_row_items.append(DeleteRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 3, ComparatorType.EQUAL, False)),  
-            [('gid',0), ('uid',0)]))
+        delete_row_items.append(DeleteRowItem(               
+            Row([('gid',0), ('uid',0)]),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 3, ComparatorType.EQUAL, False))))
 
-        delete_row_items.append(DeleteRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 4, ComparatorType.EQUAL, False)),  
-            [('gid',0), ('uid',1)]))
+        delete_row_items.append(DeleteRowItem(                
+            Row([('gid',0), ('uid',1)]),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 4, ComparatorType.EQUAL, False))))
 
-        delete_row_items.append(DeleteRowItem(
-            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 5, ComparatorType.EQUAL, False)),  
-            [('gid',0), ('uid',2)]))
+        delete_row_items.append(DeleteRowItem(                
+            Row([('gid',0), ('uid',2)]),
+            Condition(RowExistenceExpectation.IGNORE, RelationCondition("index", 5, ComparatorType.EQUAL, False))))
 
-        batch_list = MultiTableInBatchWriteRowItem()
+        batch_list = BatchWriteRowRequest()
         batch_list.add(TableInBatchWriteRowItem('myTable0', delete_row_items))
         batch_list.add(TableInBatchWriteRowItem('myTable1', delete_row_items))
 
@@ -741,33 +750,39 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
  
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',1)]
         attribute_columns = [('index',1), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',2)]
         attribute_columns = [('index',2), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable0', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable0', row, condition)
 
         primary_key = [('gid',0), ('uid',0)]
         attribute_columns = [('index',0), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
         primary_key = [('gid',1), ('uid',0)]
         attribute_columns = [('index',1), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
         primary_key = [('gid',2), ('uid',0)]
         attribute_columns = [('index',2), ('addr','china')]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE)
-        self.client_test.put_row('myTable1', condition, primary_key, attribute_columns)
+        self.client_test.put_row('myTable1', row, condition)
 
 
         ## COMPOSITE_CONDITION
@@ -779,7 +794,7 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         column_to_get = ['index']
         
-        batch_list = MultiTableInBatchGetRowItem()
+        batch_list = BatchGetRowRequest()
 
         primary_keys = []
         primary_keys.append([('gid',0), ('uid',0)])
@@ -806,35 +821,35 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         # myTable0
         # row 0
-        self.assertEqual([('gid',0), ('uid',0)], table0[0].primary_key_columns)
-        self.assert_columns([('index',0)], table0[0].attribute_columns)
+        self.assertEqual([('gid',0), ('uid',0)], table0[0].row.primary_key)
+        self.assert_columns([('index',0)], table0[0].row.attribute_columns)
 
         # row 1
-        self.assertEqual(None, table0[1].primary_key_columns)
-        self.assert_columns([], table0[1].attribute_columns)
+        self.assertEqual(None, table0[1].row.primary_key)
+        self.assert_columns([], table0[1].row.attribute_columns)
 
         # row 2
-        self.assertEqual(None, table0[2].primary_key_columns)
-        self.assert_columns([], table0[2].attribute_columns)
+        self.assertEqual(None, table0[2].row.primary_key)
+        self.assert_columns([], table0[2].row.attribute_columns)
 
         # myTable1
         # row 0
-        self.assertEqual([('gid',0), ('uid',0)], table1[0].primary_key_columns)
-        self.assert_columns([('index',0)], table0[0].attribute_columns)
+        self.assertEqual([('gid',0), ('uid',0)], table1[0].row.primary_key)
+        self.assert_columns([('index',0)], table0[0].row.attribute_columns)
 
         # row 1
-        self.assertEqual(None, table1[1].primary_key_columns)
-        self.assert_columns([], table1[1].attribute_columns)
+        self.assertEqual(None, table1[1].row.primary_key)
+        self.assert_columns([], table1[1].row.attribute_columns)
 
         # row 2
-        self.assertEqual(None, table1[2].primary_key_columns)
-        self.assert_columns([], table1[2].attribute_columns)
+        self.assertEqual(None, table1[2].row.primary_key)
+        self.assert_columns([], table1[2].row.attribute_columns)
 
         ## RELATION_CONDITION
         cond = RelationCondition('index', 0, ComparatorType.GREATER_THAN)
         column_to_get = ['index']
         
-        batch_list = MultiTableInBatchGetRowItem()
+        batch_list = BatchGetRowRequest()
 
         primary_keys = []
         primary_keys.append([('gid',0), ('uid',0)])
@@ -863,29 +878,29 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         # myTable0
         # row 
-        self.assertEqual(None, table0[0].primary_key_columns)
-        self.assert_columns([], table0[0].attribute_columns)
+        self.assertEqual(None, table0[0].row.primary_key)
+        self.assert_columns([], table0[0].row.attribute_columns)
 
         # row 1
-        self.assertEqual([('gid',0), ('uid',1)], table0[1].primary_key_columns)
-        self.assert_columns([('index', 1)], table0[1].attribute_columns)
+        self.assertEqual([('gid',0), ('uid',1)], table0[1].row.primary_key)
+        self.assert_columns([('index', 1)], table0[1].row.attribute_columns)
 
         # row 2
-        self.assertEqual([('gid',0), ('uid',2)], table0[2].primary_key_columns)
-        self.assert_columns([('index', 2)], table0[2].attribute_columns)
+        self.assertEqual([('gid',0), ('uid',2)], table0[2].row.primary_key)
+        self.assert_columns([('index', 2)], table0[2].row.attribute_columns)
 
         # myTable1
         # row 0
-        self.assertEqual(None, table1[0].primary_key_columns)
-        self.assert_columns([], table0[0].attribute_columns)
+        self.assertEqual(None, table1[0].row.primary_key)
+        self.assert_columns([], table0[0].row.attribute_columns)
 
         # row 1
-        self.assertEqual([('gid',1), ('uid',0)], table1[1].primary_key_columns)
-        self.assert_columns([('index', 1)], table1[1].attribute_columns)
+        self.assertEqual([('gid',1), ('uid',0)], table1[1].row.primary_key)
+        self.assert_columns([('index', 1)], table1[1].row.attribute_columns)
 
         # row 2
-        self.assertEqual([('gid',2), ('uid',0)], table1[2].primary_key_columns)
-        self.assert_columns([('index', 2)], table1[2].attribute_columns)
+        self.assertEqual([('gid',2), ('uid',0)], table1[2].row.primary_key)
+        self.assert_columns([('index', 2)], table1[2].row.attribute_columns)
 
 
     def test_get_range(self):
@@ -901,8 +916,9 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         for i in range(0, 100):
             primary_key = [('gid',0), ('uid',i)]
             attribute_columns = [('index',i), ('addr','china')]
+            row = Row(primary_key, attribute_columns)
             condition = Condition(RowExistenceExpectation.IGNORE)
-            self.client_test.put_row(table_name, condition, primary_key, attribute_columns)
+            self.client_test.put_row(table_name, row, condition)
 
         ## COMPOSITE_CONDITION
 
@@ -932,8 +948,8 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         for i in range(0, 50):
             r  = rows[i]
 
-            self.assertEqual([('gid',0), ('uid',i)], r[0])
-            self.assert_columns([('addr','china'),('index',i)], r[1])
+            self.assertEqual([('gid',0), ('uid',i)], r.primary_key)
+            self.assert_columns([('addr','china'),('index',i)], r.attribute_columns)
 
         ## RELATION_CONDITION
 
@@ -961,8 +977,8 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         for i in range(50, 100):
             r  = rows[i -  50]
 
-            self.assertEqual([('gid',0), ('uid',i)], r[0])
-            self.assert_columns([('addr','china'),('index',i)], r[1])
+            self.assertEqual([('gid',0), ('uid',i)], r.primary_key)
+            self.assert_columns([('addr','china'),('index',i)], r.attribute_columns)
 
 if __name__ == '__main__':
     unittest.main()

@@ -133,28 +133,29 @@ class OTS2APITestBase(TestCase):
             else:
                 columns.append(('col0', 'X' * (column_value_size - all_pk_length - 10)))
         if write is not 0:
-            consumed_update,pk,attr = self.client_test.update_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_exist, {'put':columns})
+            row = Row(pk_dict_exist, {'put':columns})
+            consumed_update,return_row = self.client_test.update_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
             expect_consumed = CapacityUnit(0, self.sum_CU_from_row(pk_dict_exist, columns))
             self.assert_consumed(consumed_update, expect_consumed)
             self.assert_equal(write, self.sum_CU_from_row(pk_dict_exist, columns))
         #consume(0, 1)
         if 1 == no_check_flag: 
             try:
-                consumed_update,pk,attr = self.client_test.delete_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_not_exist)
+                consumed_update,return_row = self.client_test.delete_row(table_name, Row(pk_dict_not_exist), Condition(RowExistenceExpectation.IGNORE))
             except OTSServiceError as e:
                 self.assert_false()
         
         #read
         while read >= write and write != 0:
             read = read - write
-            consumed_read, pk, att, token  = self.client_test.get_row(table_name, pk_dict_exist, max_version = 1)
+            consumed_read, return_row, token  = self.client_test.get_row(table_name, pk_dict_exist, max_version = 1)
             expect_consumed = CapacityUnit(self.sum_CU_from_row(pk_dict_exist, columns), 0)
             self.assert_consumed(consumed_read, expect_consumed)
-            self.assert_equal(pk, pk_dict_exist)
+            self.assert_equal(return_row.primary_key, pk_dict_exist)
         for i in range(read + no_check_flag):
-            consumed_read, pk, attr, token= self.client_test.get_row(table_name, pk_dict_not_exist, max_version = 1)
+            consumed_read, return_row, token= self.client_test.get_row(table_name, pk_dict_not_exist, max_version = 1)
             self.assert_consumed(consumed_read, CapacityUnit(1, 0))
-            self.assert_equal(pk, None)
+            self.assert_equal(return_row, None)
 
     def check_CU_by_consuming(self, table_name, pk_dict_exist, pk_dict_not_exist, 
                               capacity_unit):  

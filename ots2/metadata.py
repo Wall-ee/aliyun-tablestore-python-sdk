@@ -19,17 +19,18 @@ __all__ = [
     'DescribeTableResponse',
     'RowDataItem',
     'Condition',
+    'Row',
     'RowItem',
     'PutRowItem',
     'UpdateRowItem',
     'DeleteRowItem',
-    'MultiTableInBatchGetRowItem',
+    'BatchGetRowRequest',
     'TableInBatchGetRowItem',
-    'MultiTableInBatchGetRowResult',
+    'BatchGetRowResponse',
     'BatchWriteRowType',
-    'MultiTableInBatchWriteRowItem',
+    'BatchWriteRowRequest',
     'TableInBatchWriteRowItem',
-    'MultiTableInBatchWriteRowResult',
+    'BatchWriteRowResponse',
     'BatchWriteRowResponseItem',
     'LogicalOperator',
     'ComparatorType',
@@ -139,8 +140,9 @@ class RowDataItem(object):
         self.error_message = error_message
         self.table_name = table_name
         self.consumed = consumed
-        self.primary_key_columns = primary_key_columns
-        self.attribute_columns = attribute_columns
+        self.row = None
+        if primary_key_columns is not None or attribute_columns is not None:
+            self.row = Row(primary_key_columns, attribute_columns)
 
 class LogicalOperator(object):
     NOT = 0
@@ -343,29 +345,33 @@ class Condition(object):
     def get_column_condition(self):
         self.column_condition
 
-class RowItem(object):
-
-    def __init__(self, row_type, condition, primary_key, attribute_columns, return_type = None):
-        self.type = row_type
-        self.condition = condition
+class Row(object):
+    def __init__(self, primary_key, attribute_columns = None):
         self.primary_key = primary_key
         self.attribute_columns = attribute_columns
+
+class RowItem(object):
+
+    def __init__(self, row_type, row, condition, return_type = None):
+        self.type = row_type
+        self.condition = condition
+        self.row = row
         self.return_type = return_type
 
 class PutRowItem(RowItem):
 
-    def __init__(self, condition, primary_key, attribute_columns, return_type = None):
-        super(PutRowItem, self).__init__(BatchWriteRowType.PUT, condition, primary_key, attribute_columns, return_type)
+    def __init__(self, row, condition, return_type = None):
+        super(PutRowItem, self).__init__(BatchWriteRowType.PUT, row, condition, return_type)
 
 class UpdateRowItem(RowItem):
 
-    def __init__(self, condition, primary_key, attribute_columns, return_type = None):
-        super(UpdateRowItem, self).__init__(BatchWriteRowType.UPDATE, condition, primary_key, attribute_columns, return_type)
+    def __init__(self, row, condition, return_type = None):
+        super(UpdateRowItem, self).__init__(BatchWriteRowType.UPDATE, row, condition, return_type)
 
 class DeleteRowItem(RowItem):
 
-    def __init__(self, condition, primary_key, return_type = None):
-        super(DeleteRowItem, self).__init__(BatchWriteRowType.DELETE, condition, primary_key, None, return_type)
+    def __init__(self, row, condition, return_type = None):
+        super(DeleteRowItem, self).__init__(BatchWriteRowType.DELETE, row, condition, return_type)
 
 
 class TableInBatchGetRowItem(object):
@@ -384,7 +390,7 @@ class TableInBatchGetRowItem(object):
         self.token = token
 
 
-class MultiTableInBatchGetRowItem(object):
+class BatchGetRowRequest(object):
 
     def __init__(self):
         self.items = {}
@@ -403,7 +409,7 @@ class MultiTableInBatchGetRowItem(object):
 
         self.items[table_item.table_name] = table_item
 
-class MultiTableInBatchGetRowResult(object):
+class BatchGetRowResponse(object):
 
     def __init__(self, response):
         self.items = {}
@@ -456,7 +462,7 @@ class TableInBatchWriteRowItem(object):
         self.row_items = row_items
         
 
-class MultiTableInBatchWriteRowItem(object):
+class BatchWriteRowRequest(object):
 
     def __init__(self):
         self.items = {}
@@ -475,7 +481,7 @@ class MultiTableInBatchWriteRowItem(object):
 
         self.items[table_item.table_name] = table_item
 
-class MultiTableInBatchWriteRowResult(object):
+class BatchWriteRowResponse(object):
 
     def __init__(self, request, response):
         self.table_of_put = {}
@@ -587,7 +593,7 @@ class BatchWriteRowResponseItem(object):
         self.error_code = error_code
         self.error_message = error_message
         self.consumed = consumed
-        self.primary_key = primary_key
+        self.row = Row(primary_key)
 
 
 class INF_MIN(object):

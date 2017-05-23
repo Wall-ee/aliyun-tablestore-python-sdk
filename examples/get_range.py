@@ -22,8 +22,9 @@ def put_row(ots_client):
     for i in range(0, 100):
         primary_key = [('uid',i), ('gid', bytearray(str(i+1)))]
         attribute_columns = [('name','John'), ('mobile',i), ('address','China'), ('age',i)]
+        row = Row(primary_key, attribute_columns)
         condition = Condition(RowExistenceExpectation.IGNORE) # Expect not exist: put it into table only when this row is not exist.
-        consumed,pk,attr = ots_client.put_row(table_name, condition, primary_key, attribute_columns)
+        consumed, return_row = ots_client.put_row(table_name, row, condition)
         print u'Write succeed, consume %s write cu.' % consumed.write
 
 def get_range(ots_client): 
@@ -34,7 +35,7 @@ def get_range(ots_client):
     inclusive_start_primary_key = [('uid',INF_MIN), ('gid',INF_MIN)]
     exclusive_end_primary_key = [('uid',INF_MAX), ('gid',INF_MAX)]
     columns_to_get = []
-    limit = 9
+    limit = 90
 
     cond = CompositeCondition(LogicalOperator.AND)
     cond.add_sub_condition(RelationCondition("address", 'China', ComparatorType.EQUAL))
@@ -43,7 +44,8 @@ def get_range(ots_client):
     consumed, next_start_primary_key, row_list, next_token  = ots_client.get_range(
                 table_name, Direction.FORWARD, 
                 inclusive_start_primary_key, exclusive_end_primary_key,
-                columns_to_get, limit, 
+                columns_to_get, 
+                limit, 
                 column_filter = cond,
                 max_version = 1
     )
@@ -63,7 +65,7 @@ def get_range(ots_client):
         print 'Read succeed, consume %s read cu.' % consumed.read
 
     for row in all_rows:
-        print row
+        print row.primary_key, row.attribute_columns
     print 'Total rows: ', len(all_rows)
 
 def xget_range(ots_client):
@@ -87,8 +89,8 @@ def xget_range(ots_client):
     )
 
     total_rows = 0
-    for (primary_key_columns, attribute_columns) in range_iter:
-        print primary_key_columns, attribute_columns
+    for row in range_iter:
+        print row.primary_key, row.attribute_columns
         total_rows += 1
 
     print 'Total rows:', total_rows
@@ -104,6 +106,6 @@ if __name__ == '__main__':
     time.sleep(3) # wait for table ready
     put_row(ots_client)
     get_range(ots_client)
-    xget_range(ots_client)
+    #xget_range(ots_client)
     delete_table(ots_client)
 

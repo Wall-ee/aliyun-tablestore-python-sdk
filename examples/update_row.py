@@ -21,8 +21,9 @@ def delete_table(ots_client):
 def put_row(ots_client):
     primary_key = [('gid',1), ('uid',"101")]
     attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',20)]
+    row = Row(primary_key, attribute_columns)
     condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST) # Expect not exist: put it into table only when this row is not exist.
-    consumed, primary_key, attribute = ots_client.put_row(table_name, None, primary_key, attribute_columns)
+    consumed, return_row = ots_client.put_row(table_name, row)
     print u'Write succeed, consume %s write cu.' % consumed.write
 
 def update_row(ots_client):
@@ -32,17 +33,18 @@ def update_row(ots_client):
         'DELETE' : [('address', None, 1488436949003)],
         'DELETE_ALL' : [('mobile'), ('age')],
     }
+    row = Row(primary_key, update_of_attribute_columns)
     condition = Condition(RowExistenceExpectation.IGNORE, RelationCondition("age", 20, ComparatorType.EQUAL)) # update row only when this row is exist
-    consumed, pk, attribute = ots_client.update_row(table_name, None, primary_key, update_of_attribute_columns) 
+    consumed, return_row = ots_client.update_row(table_name, row, condition) 
     print u'Update succeed, consume %s write cu.' % consumed.write
 
 def get_row(ots_client):
     primary_key = [('gid',1), ('uid','101')]
     columns_to_get = ['name', 'address', 'age'] # given a list of columns to get, or empty list if you want to get entire row.
-    consumed, primary_key, attribute, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, None, 1)
+    consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, None, 1)
     print u'Read succeed, consume %s read cu.' % consumed.read
 
-    print u'Value of attribute: %s' % attribute
+    print u'Value of attribute: %s' % return_row.attribute_columns
 
 
 if __name__ == '__main__':

@@ -399,21 +399,6 @@ class OTSProtoBufferEncoder:
         
         self._make_update_capacity_unit(proto.capacity_unit, reserved_throughput.capacity_unit)
 
-    def _make_batch_get_row_deprecated(self, proto, batch_list):
-        for (table_name, row_list, columns_to_get) in batch_list:
-            table_item = proto.tables.add()
-            table_item.table_name = self._get_unicode(table_name)
-            self._make_repeated_column_names(table_item.columns_to_get, columns_to_get)
-            for primary_key in row_list:
-                if isinstance(primary_key, dict):
-                    row = table_item.rows.add()
-                    self._make_columns_with_dict(row.primary_key, primary_key)
-                else:
-                    raise OTSClientError(
-                        "The row should be a dict, not %s" 
-                        % row_item.__class__.__name__
-                    ) 
-
     def _make_batch_get_row_internal(self, proto, request):
         for table_name, item in request.items.items():
             table_item = proto.tables.add()
@@ -446,10 +431,10 @@ class OTSProtoBufferEncoder:
                 table_item.end_column = item.end_column
 
     def _make_batch_get_row(self, proto, request):
-        if isinstance(request, MultiTableInBatchGetRowItem):
+        if isinstance(request, BatchGetRowRequest):
             self._make_batch_get_row_internal(proto, request) 
         else:
-            raise OTSClientError("The request should be a instance of MultiTableInBatchGetRowItem, not %d"%(len(request.__class__.__name__)))
+            raise OTSClientError("The request should be a instance of BatchGetRowRequest, not %d"%(len(request.__class__.__name__)))
 
     def _make_put_row_item(self, proto, put_row_item):
         condition = put_row_item.condition
@@ -460,7 +445,7 @@ class OTSProtoBufferEncoder:
             proto.return_content.return_type = put_row_item.return_type
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_put_row(
-                put_row_item.primary_key, put_row_item.attribute_columns))
+                put_row_item.row.primary_key, put_row_item.row.attribute_columns))
         proto.type = pb2.PUT
         return proto
 
@@ -474,7 +459,7 @@ class OTSProtoBufferEncoder:
             proto.return_content.return_type = update_row_item.return_type
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(
-                update_row_item.primary_key, update_row_item.attribute_columns))
+                update_row_item.row.primary_key, update_row_item.row.attribute_columns))
         proto.type = pb2.UPDATE
         return proto
 
@@ -487,7 +472,7 @@ class OTSProtoBufferEncoder:
         if delete_row_item.return_type == pb2.RT_NONE or delete_row_item.return_type == pb2.RT_PK:
             proto.return_content.return_type = delete_row_item.return_type
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.primary_key))
+        proto.row_change = str(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.row.primary_key))
         proto.type = pb2.DELETE
         return proto
 
@@ -511,7 +496,7 @@ class OTSProtoBufferEncoder:
 
 
     def _make_batch_write_row(self, proto, request):
-        if isinstance(request, MultiTableInBatchWriteRowItem):
+        if isinstance(request, BatchWriteRowRequest):
             self._make_batch_write_row_internal(proto, request) 
         else:
             raise OTSClientError("The request should be a instance of MultiTableInBatchWriteRowItem, not %d"%(len(request.__class__.__name__)))
@@ -575,7 +560,7 @@ class OTSProtoBufferEncoder:
 
         return proto
 
-    def _encode_put_row(self, table_name, condition, primary_key, attribute_columns, return_type):
+    def _encode_put_row(self, table_name, row, condition, return_type):
         proto = pb2.PutRowRequest()
         proto.table_name = self._get_unicode(table_name)
         if condition is None:
@@ -584,10 +569,10 @@ class OTSProtoBufferEncoder:
         if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
             proto.return_content.return_type = return_type
 
-        proto.row = str(PlainBufferBuilder.serialize_for_put_row(primary_key, attribute_columns))
+        proto.row = str(PlainBufferBuilder.serialize_for_put_row(row.primary_key, row.attribute_columns))
         return proto
 
-    def _encode_update_row(self, table_name, condition, primary_key, update_of_attribute_columns, return_type):
+    def _encode_update_row(self, table_name, row, condition, return_type):
         proto = pb2.UpdateRowRequest()
         proto.table_name = self._get_unicode(table_name)
         if condition is None:
@@ -597,10 +582,10 @@ class OTSProtoBufferEncoder:
         if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
             proto.return_content.return_type = return_type
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(primary_key, update_of_attribute_columns))
+        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(row.primary_key, row.attribute_columns))
         return proto
 
-    def _encode_delete_row(self, table_name, condition, primary_key, return_type):
+    def _encode_delete_row(self, table_name, row, condition, return_type):
         proto = pb2.DeleteRowRequest()
         proto.table_name = self._get_unicode(table_name)
         if condition is None:
@@ -610,7 +595,7 @@ class OTSProtoBufferEncoder:
         if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
             proto.return_content.return_type = return_type
 
-        proto.primary_key = str(PlainBufferBuilder.serialize_for_delete_row(primary_key))
+        proto.primary_key = str(PlainBufferBuilder.serialize_for_delete_row(row.primary_key))
         return proto
 
     def _encode_batch_get_row(self, request):
