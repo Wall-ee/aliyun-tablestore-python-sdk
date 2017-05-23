@@ -12,6 +12,7 @@ __all__ = [
     'ReservedThroughput',
     'ReservedThroughputDetails',
     'ColumnType',
+    'ReturnType',
     'Column',
     'Direction',
     'UpdateType',
@@ -83,7 +84,10 @@ class ColumnType(object):
     BINARY = "BINARY"
     INF_MIN = "INF_MIN"
     INF_MAX = "INF_MAX"
-    PK_AUTO_INCR = 'PK_AUTO_INCR'
+
+class ReturnType(object):
+    RT_NONE = 'RT_NONE'
+    RT_PK = 'RT_PK'
 
 class Column(object):
     def __init__(self, name, value = None, timestamp = None):

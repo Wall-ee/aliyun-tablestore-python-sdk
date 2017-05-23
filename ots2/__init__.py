@@ -14,6 +14,7 @@ __all__ = [
     'ReservedThroughput',
     'ReservedThroughputDetails',
     'ColumnType',
+    'ReturnType',
     'Column',
     'Direction',
     'UpdateTableResponse',

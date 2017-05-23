@@ -44,6 +44,15 @@ class OTSProtoBufferDecoder:
         else:
             raise OTSClientError("invalid value for column type: %s" % str(column_type_enum))
 
+    def _parse_column_option(self, column_option_enum):
+        reverse_enum_map = {
+            pb2.AUTO_INCREMENT : PK_AUTO_INCR,
+        }
+        if column_option_enum in reverse_enum_map:
+            return reverse_enum_map[column_option_enum]
+        else:
+            raise OTSClientError("invalid value for column option: %s" % str(column_option_enum))        
+
     def _parse_value(self, proto):
         if proto.type == pb2.INTEGER:
             return proto.v_int
@@ -61,7 +70,11 @@ class OTSProtoBufferDecoder:
     def _parse_schema_list(self, proto):
         ret = []
         for item in proto:
-            ret.append((item.name, self._parse_column_type(item.type)))
+            if item.HasField('option'):
+                ret.append((item.name, self._parse_column_type(item.type), self._parse_column_option(item.option)))
+            else:
+                ret.append((item.name, self._parse_column_type(item.type)))
+
         return ret
 
     def _parse_column_dict(self, proto):
@@ -255,7 +268,7 @@ class OTSProtoBufferDecoder:
             inputStream = PlainBufferInputStream(proto.row)
             codedInputStream = PlainBufferCodedInputStream(inputStream)
             primary_key, attribute_columns = codedInputStream.read_row()
-            return_row = Row(primary_key, attributes)
+            return_row = Row(primary_key, attribute_columns)
 
         return (consumed, return_row), proto
 
@@ -271,7 +284,7 @@ class OTSProtoBufferDecoder:
             inputStream = PlainBufferInputStream(proto.row)
             codedInputStream = PlainBufferCodedInputStream(inputStream)
             primary_key, attribute_columns = codedInputStream.read_row()
-            return_row = Row(primary_key, attributes)
+            return_row = Row(primary_key, attribute_columns)
 
         return (consumed, return_row), proto
 
@@ -287,7 +300,7 @@ class OTSProtoBufferDecoder:
             inputStream = PlainBufferInputStream(proto.row)
             codedInputStream = PlainBufferCodedInputStream(inputStream)
             primary_key, attribute_columns = codedInputStream.read_row()
-            return_row = Row(primary_key, attributes)
+            return_row = Row(primary_key, attribute_columns)
 
         return (consumed, return_row), proto
 

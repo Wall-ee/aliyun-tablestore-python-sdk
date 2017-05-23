@@ -254,6 +254,10 @@ class PlainBufferCodedOutputStream:
             self.outputStream.write_raw_little_endian32(1)
             self.outputStream.write_raw_byte(VT_INF_MAX)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_INF_MAX)
+        elif value is PK_AUTO_INCR:
+            self.outputStream.write_raw_little_endian32(1)
+            self.outputStream.write_raw_byte(VT_AUTO_INCREMENT)
+            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_AUTO_INCREMENT)
         elif isinstance(value, int) or isinstance(value, long):
             self.outputStream.write_raw_little_endian32(1 + const.LITTLE_ENDIAN_64_SIZE)
             self.outputStream.write_raw_byte(VT_INTEGER)

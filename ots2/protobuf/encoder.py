@@ -17,6 +17,10 @@ PRIMARY_KEY_TYPE_MAP = {
     'BINARY'    : pb2.BINARY,
 }
 
+PRIMARY_KEY_OPTION_MAP = {
+    PK_AUTO_INCR : pb2.AUTO_INCREMENT,
+}
+
 LOGICAL_OPERATOR_MAP = {
     LogicalOperator.NOT     : filter_pb2.LO_NOT,
     LogicalOperator.AND     : filter_pb2.LO_AND,
@@ -132,6 +136,21 @@ class OTSProtoBufferEncoder:
             raise OTSClientError(
                 "expect str, unicode, int, long, bool or float for colum value, not %s"
                 % value.__class__.__name__
+            )
+
+    def _get_column_option(self, option):
+        global PRIMARY_KEY_OPTION_MAP
+        enum_map = PRIMARY_KEY_OPTION_MAP
+
+        proto_option = enum_map.get(option)
+
+        if proto_option != None:
+            return proto_option
+        else:
+            raise OTSClientError(
+                "primary_key_option should be one of [%s], not %s" % (
+                    ", ".join(enum_map.keys()), str(option)
+                )
             )
 
     def _get_column_type(self, type_str):
@@ -266,9 +285,10 @@ class OTSProtoBufferEncoder:
             )
 
     def _make_column_schema(self, proto, schema_tuple):
-        (schema_name, schema_type) = schema_tuple
-        proto.name = self._get_unicode(schema_name)
-        proto.type = self._get_column_type(schema_type)
+        proto.name = self._get_unicode(schema_tuple[0])
+        proto.type = self._get_column_type(schema_tuple[1])
+        if len(schema_tuple) == 3:
+            proto.option = self._get_column_option(schema_tuple[2])
 
     def _make_schemas_with_list(self, proto, schema_list):
         for schema_tuple in schema_list:
@@ -441,8 +461,8 @@ class OTSProtoBufferEncoder:
         if condition is None:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
-        if put_row_item.return_type == pb2.RT_NONE or put_row_item.return_type == pb2.RT_PK:
-            proto.return_content.return_type = put_row_item.return_type
+        if put_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_put_row(
                 put_row_item.row.primary_key, put_row_item.row.attribute_columns))
@@ -455,8 +475,8 @@ class OTSProtoBufferEncoder:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
 
-        if update_row_item.return_type == pb2.RT_NONE or update_row_item.return_type == pb2.RT_PK:
-            proto.return_content.return_type = update_row_item.return_type
+        if update_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(
                 update_row_item.row.primary_key, update_row_item.row.attribute_columns))
@@ -469,8 +489,8 @@ class OTSProtoBufferEncoder:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
 
-        if delete_row_item.return_type == pb2.RT_NONE or delete_row_item.return_type == pb2.RT_PK:
-            proto.return_content.return_type = delete_row_item.return_type
+        if delete_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.row.primary_key))
         proto.type = pb2.DELETE
@@ -566,8 +586,8 @@ class OTSProtoBufferEncoder:
         if condition is None:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
-        if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
-            proto.return_content.return_type = return_type
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.row = str(PlainBufferBuilder.serialize_for_put_row(row.primary_key, row.attribute_columns))
         return proto
@@ -579,8 +599,8 @@ class OTSProtoBufferEncoder:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
 
-        if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
-            proto.return_content.return_type = return_type
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(row.primary_key, row.attribute_columns))
         return proto
@@ -592,8 +612,8 @@ class OTSProtoBufferEncoder:
             condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
 
-        if return_type == pb2.RT_NONE or return_type == pb2.RT_PK:
-            proto.return_content.return_type = return_type
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
         proto.primary_key = str(PlainBufferBuilder.serialize_for_delete_row(row.primary_key))
         return proto

@@ -75,14 +75,14 @@ class RetryUtil:
 class DefaultRetryPolicy(RetryPolicy):
     """
     默认重试策略
-    最大重试次数为3，最大重试间隔为2000毫秒，对流控类错误以及读操作相关的服务端内部错误进行了重试。
+    最大重试次数为20，最大重试间隔为3秒，对流控类错误以及读操作相关的服务端内部错误进行了重试。
     """
 
     # 最大重试次数
-    max_retry_times = 3
+    max_retry_times = 20
 
     # 最大重试间隔，单位为秒
-    max_retry_delay = 2   
+    max_retry_delay = 3   
 
     # 每次重试间隔的递增倍数
     scale_factor = 2
@@ -94,12 +94,15 @@ class DefaultRetryPolicy(RetryPolicy):
     def _max_retry_time_reached(self, retry_times, exception, api_name):
         return retry_times >= self.max_retry_times
 
+    def is_repeatable_api(self, api_name):
+        return RetryUtil.is_repeatable_api(api_name)
+
     def _can_retry(self, retry_times, exception, api_name):
 
         if RetryUtil.should_retry_no_matter_which_api(exception):
             return True
 
-        if RetryUtil.is_repeatable_api(api_name) and RetryUtil.should_retry_when_api_repeatable(retry_times, exception, api_name):
+        if self.is_repeatable_api(api_name) and RetryUtil.should_retry_when_api_repeatable(retry_times, exception, api_name):
             return True
 
         return False
@@ -149,4 +152,3 @@ class NoDelayRetryPolicy(DefaultRetryPolicy):
 
     def get_retry_delay(self, retry_times, exception, api_name):
         return 0
-
