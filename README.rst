@@ -1,6 +1,10 @@
 Aliyun TableStore SDK for Python
 ==================================
 
+.. image:: https://img.shields.io/badge/license-apache2-brightgreen.svg
+    :target: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk
+.. image:: https://badge.fury.io/gh/aliyun%2Faliyun-tablestore-csharp-sdk.svg
+    :target: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk
 .. image:: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk.svg
     :target: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk
 .. image:: https://coveralls.io/repos/github/aliyun/aliyun-tablestore-python-sdk/badge.svg
