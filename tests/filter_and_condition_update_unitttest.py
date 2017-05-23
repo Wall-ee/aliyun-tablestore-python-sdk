@@ -392,6 +392,20 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
         condition = Condition(RowExistenceExpectation.IGNORE, cond)
         self.client_test.put_row(table_name, row, condition)
 
+        # 注入一行，条件是age等于99，当age列不存在时，pass_if_missing = True 条件通过，插入成功
+        cond = Condition(RowExistenceExpectation.IGNORE, 
+                         SingleColumnCondition("age", 99, ComparatorType.EQUAL, pass_if_missing = True))
+        self.client_test.put_row(table_name, row, cond)
+
+        # 注入一行，条件是age等于99，当age列不存在时，pass_if_missing = False条件不通过，插入失败
+        cond = Condition(RowExistenceExpectation.IGNORE,
+                         SingleColumnCondition("age", 99, ComparatorType.EQUAL, pass_if_missing = False))
+        try:
+            self.client_test.put_row(table_name, row, cond)
+        except OTSServiceError, e:
+            self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.") 
+
+
     def test_get_row(self):
         """调用GetRow API, 构造不同的Condition"""
         table_name = FilterAndConditionUpdateTest.TABLE_NAME
@@ -496,6 +510,16 @@ class FilterAndConditionUpdateTest(OTS2APITestBase):
 
         # 读取一行数据，index < 0, 期望读取失败
         cond = SingleColumnCondition("index", 0, ComparatorType.LESS_THAN)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(None, return_row)
+
+        # 读取一行数据，过滤条件是age > 5，age并不存在，设置pass_if_missing为True
+        cond = SingleColumnCondition("age", 5, ComparatorType.GREATER_THAN, pass_if_missing = True)
+        cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
+        self.assertEqual(primary_key, return_row.primary_key)
+
+        # 读取一行数据，过滤条件是age > 5，age并不存在，设置pass_if_missing为False
+        cond = SingleColumnCondition("age", 5, ComparatorType.GREATER_THAN, pass_if_missing = False)
         cu, return_row, token = self.client_test.get_row(table_name, primary_key, column_filter=cond, max_version=1)
         self.assertEqual(None, return_row)
 
