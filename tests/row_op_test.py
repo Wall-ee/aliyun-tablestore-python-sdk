@@ -345,26 +345,6 @@ class RowOpTest(OTS2APITestBase):
         self.assert_columns([('C1', 'blah')], table_result_1[1].row.attribute_columns)
 
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('AA', [pks0, pks1], ['PK1'], None, 1))
-        request.add(TableInBatchGetRowItem('BB', [pks0, pks1], ['PK1'], None, 1))
-        response = self.client_test.batch_get_row(request)
-
-        self.assertFalse(response.is_all_succeed())
-        table_result_0 = response.get_result_by_table('AA')
-        self.assert_equal(2, len(table_result_0))
-        self.assert_equal(False, table_result_0[0].is_ok)
-        self.assert_equal(None, table_result_0[0].row)
-        self.assert_equal(False, table_result_0[1].is_ok)
-        self.assert_equal(None, table_result_0[1].row)
-
-        table_result_1 = response.get_result_by_table('BB')
-        self.assert_equal(2, len(table_result_1))
-        self.assert_equal(False, table_result_1[0].is_ok)
-        self.assert_equal(None, table_result_1[0].row)
-        self.assert_equal(False, table_result_1[1].is_ok)
-        self.assert_equal(None, table_result_1[1].row)
-
-        request = BatchGetRowRequest()
         request.add(TableInBatchGetRowItem('AA', [pks0, pks1], ['blah'], None, 1))
         request.add(TableInBatchGetRowItem('BB', [pks0, pks1], ['blah'], None, 1))
 
@@ -1101,70 +1081,6 @@ class RowOpTest(OTS2APITestBase):
         if cu_read == 0:
             cu_read = 1
         consumed_expect = CapacityUnit(cu_read, 0)
-
-    def test_read_empty_row(self):
-        """测试对空行的读操作，以及GetRange在行没有对应的列时期望不返回空行"""
-        table_name = 'T'
-        
-        table_meta = TableMeta('T', [('PK0', 'INTEGER')])
-        table_options = TableOptions()
-        self.client_test.create_table(table_meta, table_options, ReservedThroughput(CapacityUnit(20, 20)))
-        self.wait_for_partition_load('T')
-
-        # internal model: throw exception, public modele:pass
-        try:                                  
-            consumed,rrow = self.client_test.put_row('T', Row([('PK0' , 0)], []), Condition(RowExistenceExpectation.IGNORE))
-            self.assertTrue(False)
-        except:
-            pass
-
-        consumed,rrow = self.client_test.put_row('T', Row([('PK0' , 1)], [('Col' , 1)]), Condition(RowExistenceExpectation.IGNORE))
-
-        consumed, rrow, token = self.client_test.get_row('T', [('PK0' , 1)], max_version=1)
-        self.assert_equal(rrow.primary_key, [('PK0' , 1)])
-        self.assert_columns(rrow.attribute_columns, [('Col', 1)])
-        
-        consumed, rrow, token = self.client_test.get_row('T', [('PK0' , 0)], columns_to_get=['Col'], max_version=1)
-        self.assert_equal(rrow, None)
-
-        request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('T', [[('PK0', 0)]], [], None, 1))
-        ret = self.client_test.batch_get_row(request)
-        #self.assert_RowDataItem_equal(ret, [[RowDataItem(True, None, None, "", CapacityUnit(1, 0), [('PK0' , 0)], [])]])
-        succ, failed = ret.get_result()
-        self.assert_equal(1, len(succ))
-        self.assert_equal(0, len(failed))
-        self.assert_equal(None, succ[0].error_code)
-        self.assert_equal(None, succ[0].error_message)
-        self.assert_equal(None, succ[0].row)
-
-        request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('T', [[('PK0' , 0)]], ['Col'], None, 1))
-        ret = self.client_test.batch_get_row(request)    
-        succ, failed = ret.get_result()
-        self.assert_equal(1, len(succ))
-        self.assert_equal(0, len(failed))
-        self.assert_equal(None, succ[0].error_code)
-        self.assert_equal(None, succ[0].error_message)
-        self.assert_equal(None, succ[0].row)
-
-        consumed, next_pk, row_list, token = self.client_test.get_range('T', 'FORWARD', [('PK0' , 0)], [('PK0' , 1)], max_version=1)
-        self.assert_equal(next_pk, None)
-        self.assert_equal(row_list, [])
-
-        consumed, next_pk, row_list, token = self.client_test.get_range('T', 'FORWARD', [('PK0' , 0)], [('PK0' , 1)], columns_to_get=['Col'],max_version=1)
-        self.assert_equal(next_pk, None)
-        self.assert_equal(row_list, [])
-
-        consumed, next_pk, row_list, token = self.client_test.get_range('T', 'FORWARD', [('PK0' , 0)], [('PK0' , 2)], max_version=1)
-        self.assert_equal(next_pk, None)        
-        self.assert_equal([('PK0', 1)], row_list[0].primary_key)
-        self.assert_columns([('Col', 1)], row_list[0].attribute_columns)
-
-        consumed, next_pk, row_list, token = self.client_test.get_range('T', 'FORWARD', [('PK0' , 0)], [('PK0' , 2)], columns_to_get=['Col'], max_version=1)
-        self.assert_equal(next_pk, None)
-        self.assert_equal([('PK0', 1)], row_list[0].primary_key)
-        self.assert_columns([('Col', 1)], row_list[0].attribute_columns)
 
     def test_all_item_in_batch_write_row_failed(self):
         """当batch write row里的所有item全部后端失败时，期望每个item都返回具体的错误，而整个操作返回正常"""
