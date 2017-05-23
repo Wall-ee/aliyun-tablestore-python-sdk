@@ -1,10 +1,10 @@
 Aliyun TableStore SDK for Python
 ==================================
 
-.. image:: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk.svg?branch=master
+.. image:: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk.svg
     :target: https://travis-ci.org/aliyun/aliyun-tablestore-python-sdk
-.. image:: https://coveralls.io/repos/github/aliyun/aliyun-tablestore-python-sdk/badge.svg?branch=master
-    :target: https://coveralls.io/github/aliyun/aliyun-tablestore-python-sdk?branch=master
+.. image:: https://coveralls.io/repos/github/aliyun/aliyun-tablestore-python-sdk/badge.svg
+    :target: https://coveralls.io/github/aliyun/aliyun-tablestore-python-sdk
 
 概述
 ----
@@ -66,6 +66,7 @@ Github安装
 - `批量写（向多张表，一次性写入多行数据） <https://github.com/aliyun/aliyun-tablestore-python-sdk/blob/master/examples/batch_write_row.py>`_
 - `批量读（从多张表，一次性读出多行数据） <https://github.com/aliyun/aliyun-tablestore-python-sdk/blob/master/examples/batch_get_row.py>`_
 - `范围扫描（给定一个范围，扫描出该范围内的所有数据） <https://github.com/aliyun/aliyun-tablestore-python-sdk/blob/master/examples/get_range.py>`_
+- `主键自增列（主键自动生成一个递增ID） <https://github.com/aliyun/aliyun-tablestore-python-sdk/blob/master/examples/pk_auto_incr.py>`_
 
 执行测试
 ---------
