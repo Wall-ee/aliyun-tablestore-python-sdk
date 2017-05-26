@@ -7,7 +7,7 @@ from ots2.plainbuffer.plain_buffer_builder import *
 import ots2.protobuf.table_store_pb2 as pb2
 import ots2.protobuf.table_store_filter_pb2 as filter_pb2
 
-class OTSProtoBufferDecoder:
+class OTSProtoBufferDecoder(object):
 
     def __init__(self, encoding):
         self.encoding = encoding

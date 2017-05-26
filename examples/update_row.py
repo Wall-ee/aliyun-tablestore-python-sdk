@@ -12,11 +12,11 @@ def create_table(ots_client):
     table_options = TableOptions()
     reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
     ots_client.create_table(table_meta, table_options, reserved_throughput)
-    print 'Table has been created.'
+    print ('Table has been created.')
 
 def delete_table(ots_client):
     ots_client.delete_table(table_name)
-    print 'Table \'%s\' has been deleted.' % table_name
+    print ('Table \'%s\' has been deleted.' % table_name)
 
 def put_row(ots_client):
     primary_key = [('gid',1), ('uid',"101")]
@@ -24,7 +24,7 @@ def put_row(ots_client):
     row = Row(primary_key, attribute_columns)
     condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST) # Expect not exist: put it into table only when this row is not exist.
     consumed, return_row = ots_client.put_row(table_name, row)
-    print u'Write succeed, consume %s write cu.' % consumed.write
+    print ('Write succeed, consume %s write cu.' % consumed.write)
 
 def update_row(ots_client):
     primary_key = [('gid',1), ('uid',"101")]
@@ -36,15 +36,15 @@ def update_row(ots_client):
     row = Row(primary_key, update_of_attribute_columns)
     condition = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("age", 20, ComparatorType.EQUAL)) # update row only when this row is exist
     consumed, return_row = ots_client.update_row(table_name, row, condition) 
-    print u'Update succeed, consume %s write cu.' % consumed.write
+    print ('Update succeed, consume %s write cu.' % consumed.write)
 
 def get_row(ots_client):
     primary_key = [('gid',1), ('uid','101')]
     columns_to_get = ['name', 'address', 'age'] # given a list of columns to get, or empty list if you want to get entire row.
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, None, 1)
-    print u'Read succeed, consume %s read cu.' % consumed.read
+    print ('Read succeed, consume %s read cu.' % consumed.read)
 
-    print u'Value of attribute: %s' % return_row.attribute_columns
+    print ('Value of attribute: %s' % return_row.attribute_columns)
 
 
 if __name__ == '__main__':
@@ -57,10 +57,10 @@ if __name__ == '__main__':
 
     time.sleep(3) # wait for table ready
     put_row(ots_client)
-    print '#### row before update ####'
+    print ('#### row before update ####')
     get_row(ots_client)
     update_row(ots_client)
-    print '#### row after update ####'
+    print ('#### row after update ####')
     get_row(ots_client)
     delete_table(ots_client)
 

@@ -52,7 +52,7 @@ ROW_EXISTENCE_EXPECTATION_MAP = {
     RowExistenceExpectation.EXPECT_NOT_EXIST : pb2.EXPECT_NOT_EXIST ,
 }
 
-class OTSProtoBufferEncoder:
+class OTSProtoBufferEncoder(object):
 
     def __init__(self, encoding):
         self.encoding = encoding

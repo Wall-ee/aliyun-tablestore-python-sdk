@@ -8,7 +8,7 @@ from plain_buffer_crc8 import *
 from plain_buffer_stream import *
 from plain_buffer_coded_stream import *
 
-class PlainBufferBuilder:
+class PlainBufferBuilder(object):
     @staticmethod
     def compute_primary_key_value_size(value):
         size = 1   # TAG_CELL_VALUE
@@ -124,7 +124,7 @@ class PlainBufferBuilder:
             size += 1
             for update_type in attribute_columns.keys():
                 columns = attribute_columns[update_type]
-                if isinstance(columns, str):
+                if isinstance(columns, str) or isinstance(columns, unicode):
                     size += PlainBufferBuilder.compute_column_size2(column, None, update_type)
                 elif isinstance(columns, list):
                     for column in columns:

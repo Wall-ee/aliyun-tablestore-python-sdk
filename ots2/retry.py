@@ -2,7 +2,7 @@
 import random
 import math
 
-class RetryPolicy:
+class RetryPolicy(object):
     """
     ```RetryPolicy```是重试策略的接口，包含2个未实现的方法和它们的参数列表。要实现一个重试策略，
     继承这个类并实现它的2个方法。
@@ -15,7 +15,7 @@ class RetryPolicy:
         raise NotImplementedError()
 
 
-class RetryUtil:
+class RetryUtil(object):
 
     @classmethod
     def should_retry_no_matter_which_api(cls, exception):

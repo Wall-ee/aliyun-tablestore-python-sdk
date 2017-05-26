@@ -14,7 +14,7 @@ from ots2.error import *
 import ots2.protobuf.table_store_pb2 as pb2
 
 
-class MockConnection:
+class MockConnection(object):
 
     def __init__(self, host, path, timeout=0, maxsize=50):
         self.host = host

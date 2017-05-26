@@ -13,7 +13,7 @@ _NETWORK_IO_TIME_COUNT_FLAG = False
 _network_io_time = 0
 
 
-class ConnectionPool:
+class ConnectionPool(object):
 
     NUM_POOLS = 5    # one pool per host, usually just 1 pool is needed
                       # when redirect happens, one additional pool will be created

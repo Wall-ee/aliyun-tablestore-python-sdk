@@ -14,16 +14,16 @@ def create_table(ots_client):
     table_options = TableOptions()
     reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
     ots_client.create_table(table_meta, table_options, reserved_throughput)
-    print 'Table has been created.'
+    print ('Table has been created.')
 
 def describe_table(ots_client):
     describe_response = ots_client.describe_table(table_name)
-    print u'TableName: %s' % describe_response.table_meta.table_name
-    print u'PrimaryKey: %s' % describe_response.table_meta.schema_of_primary_key
+    print ('TableName: %s' % describe_response.table_meta.table_name)
+    print ('PrimaryKey: %s' % describe_response.table_meta.schema_of_primary_key)
 
 def delete_table(ots_client):
     ots_client.delete_table(table_name)
-    print 'Table \'%s\' has been deleted.' % table_name
+    print ('Table \'%s\' has been deleted.' % table_name)
 
 def put_row(ots_client):
     primary_key = [('gid',1), ('uid', PK_AUTO_INCR)]
@@ -32,12 +32,12 @@ def put_row(ots_client):
 
     # Expect not exist: put it into table only when this row is not exist.
     consumed, return_row = ots_client.put_row(table_name, row)
-    print u'Write succeed, consume %s write cu.' % consumed.write
+    print ('Write succeed, consume %s write cu.' % consumed.write)
 
     row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
     consumed, return_row = ots_client.put_row(table_name, row, return_type = ReturnType.RT_PK)
-    print u'Write succeed, consume %s write cu.' % consumed.write
-    print u'Primary key:%s' % return_row.primary_key
+    print ('Write succeed, consume %s write cu.' % consumed.write)
+    print ('Primary key:%s' % return_row.primary_key)
 
     row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
 
@@ -55,13 +55,13 @@ def batch_write_row(ots_client):
     request.add(TableInBatchWriteRowItem(table_name, put_row_items))
     result = ots_client.batch_write_row(request)
 
-    print 'Result status: %s'%(result.is_all_succeed())
-    print 'check first table\'s put results:'
+    print ('Result status: %s'%(result.is_all_succeed()))
+    print ('check first table\'s put results:')
     succ, fail = result.get_put()
     for item in succ:
-        print 'Put succeed, primary key:%s.' % item.row.primary_key
+        print ('Put succeed, primary key:%s.' % item.row.primary_key)
     for item in fail:
-        print 'Put failed, error code: %s, error message: %s' % (item.error_code, item.error_message)
+        print ('Put failed, error code: %s, error message: %s' % (item.error_code, item.error_message))
 
 
 def get_range(ots_client):
@@ -79,7 +79,7 @@ def get_range(ots_client):
                 max_version = 1
     )
     for row in row_list:
-        print row.primary_key
+        print (row.primary_key)
     
 
 if __name__ == '__main__':

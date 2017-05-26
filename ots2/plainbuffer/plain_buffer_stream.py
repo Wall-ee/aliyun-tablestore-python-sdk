@@ -3,7 +3,7 @@
 import struct
 from ots2.error import *
 
-class PlainBufferInputStream:
+class PlainBufferInputStream(object):
     def __init__(self, data_buffer):
         self.buffer = data_buffer
         self.cur_pos = 0
@@ -82,7 +82,7 @@ class PlainBufferInputStream:
         return utf_str
 
         
-class PlainBufferOutputStream:
+class PlainBufferOutputStream(object):
     def __init__(self, capacity):
         self.buffer = bytearray()
         self.capacity = capacity

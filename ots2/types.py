@@ -1,5 +1,5 @@
 
-class PrimaryKey:
+class PrimaryKey(object):
     def __init__(self):
         self.pks = []
 
@@ -15,7 +15,7 @@ class PrimaryKey:
     def get_primary_key(self, index):
         return self.pks[index]
 
-class PrimaryKeyColumn:
+class PrimaryKeyColumn(object):
     def __init(self, name, value):
         self.name = name
         self.value = value
@@ -26,7 +26,7 @@ class PrimaryKeyColumn:
     def get_value(self, value):
         self.value = value
 
-class PrimaryKeyValue:
+class PrimaryKeyValue(object):
     def __init__(self, pk_type, value):
         self.type = pk_type
         self.value = value

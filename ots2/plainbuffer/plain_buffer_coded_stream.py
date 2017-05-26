@@ -9,7 +9,7 @@ from plain_buffer_consts import *
 from plain_buffer_crc8 import *
 from plain_buffer_consts import *
 
-class PlainBufferCodedInputStream:
+class PlainBufferCodedInputStream(object):
     def __init__(self, inputStream):
         self.inputStream = inputStream
 
@@ -226,7 +226,7 @@ class PlainBufferCodedInputStream:
             row_list.append(Row(pk, attr))
         return row_list
 
-class PlainBufferCodedOutputStream:
+class PlainBufferCodedOutputStream(object):
     def __init__(self, outputStream):
         self.outputStream = outputStream
 
@@ -441,7 +441,7 @@ class PlainBufferCodedOutputStream:
             for update_type in attribute_columns.keys():
                 columns = attribute_columns[update_type]
                 for column in columns:
-                    if isinstance(column, str):
+                    if isinstance(column, str) or isinstance(column, unicode):
                         row_check_sum = self.write_update_column(update_type, column, None, row_check_sum)
                     elif len(column) == 2:
                         row_check_sum = self.write_update_column(update_type, column[0], (column[1], None), row_check_sum)

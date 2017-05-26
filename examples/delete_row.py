@@ -13,11 +13,11 @@ def create_table(ots_client):
     table_option = TableOptions()
     reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
     ots_client.create_table(table_meta, table_option, reserved_throughput)
-    print 'Table has been created.'
+    print ('Table has been created.')
 
 def delete_table(ots_client):
     ots_client.delete_table(table_name)
-    print 'Table \'%s\' has been deleted.' % table_name
+    print ('Table \'%s\' has been deleted.' % table_name)
 
 def put_row(ots_client):
     primary_key = [('gid',1), ('uid',"101")]
@@ -25,23 +25,23 @@ def put_row(ots_client):
     row = Row(primary_key, attribute_columns)
     condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST) # Expect not exist: put it into table only when this row is not exist.
     consumed, return_row = ots_client.put_row(table_name, row)
-    print u'Write succeed, consume %s write cu.' % consumed.write
+    print ('Write succeed, consume %s write cu.' % consumed.write)
 
 def delete_row(ots_client):
     primary_key = [('gid',1), ('uid','101')]
     row = Row(primary_key)
     condition = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("age", 25, ComparatorType.LESS_THAN))
     consumed, return_row = ots_client.delete_row(table_name, row, condition) 
-    print u'Delete succeed, consume %s write cu.' % consumed.write
+    print ('Delete succeed, consume %s write cu.' % consumed.write)
 
 def get_row(ots_client):
     primary_key = [('gid',1), ('uid',"101")]
     columns_to_get = ['name', 'address', 'age'] # given a list of columns to get, or empty list if you want to get entire row.
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, None, 1)
-    print u'Read succeed, consume %s read cu.' % consumed.read
+    print ('Read succeed, consume %s read cu.' % consumed.read)
 
     if return_row is not None:
-        print u'Value of attribute: %s' % return_row.attribute_columns
+        print ('Value of attribute: %s' % return_row.attribute_columns)
 
 if __name__ == '__main__':
     ots_client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE)
@@ -54,10 +54,10 @@ if __name__ == '__main__':
     time.sleep(3) # wait for table ready
 
     put_row(ots_client)
-    print '#### row before delete ####'
+    print ('#### row before delete ####')
     get_row(ots_client)
     delete_row(ots_client)
-    print '#### row after delete ####'
+    print ('#### row after delete ####')
     get_row(ots_client)
 
     delete_table(ots_client)

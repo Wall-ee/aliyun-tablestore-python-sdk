@@ -23,7 +23,7 @@ import ots2.protobuf.table_store_pb2 as pb2
 import ots2.protobuf.table_store_filter_pb2 as filter_pb2
 
 
-class OTSProtocol:
+class OTSProtocol(object):
 
     api_version = '2015-12-31'
 
@@ -215,7 +215,7 @@ class OTSProtocol:
 
         try:
             ret, proto = self.decoder.decode_response(api_name, body)
-        except Exception, e:
+        except Exception as e:
             request_id = self._get_request_id_string(headers)
             error_message = 'Response format is invalid, %s, RequestID: %s, " \
                 "HTTP status: %s, Body: %s.' % (str(e), request_id, status, body)
@@ -248,7 +248,7 @@ class OTSProtocol:
             self._check_headers(std_headers, body, status=status)
             if status != 403:
                 self._check_authorization(query, std_headers, status=status)
-        except OTSClientError, e:
+        except OTSClientError as e:
             e.http_status = status
             e.message += " HTTP status: %s." % status
             raise e
@@ -271,7 +271,7 @@ class OTSProtocol:
             try:
                 if status == 403 and error_proto.code != "OTSAuthFailed":
                     self._check_authorization(query, std_headers)
-            except OTSClientError, e:
+            except OTSClientError as e:
                 e.http_status = status
                 e.message += " HTTP status: %s." % status
                 raise e
