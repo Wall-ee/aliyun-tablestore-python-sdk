@@ -20,7 +20,7 @@ def delete_table(ots_client):
 
 def put_row(ots_client):
     primary_key = [('uid',1), ('gid',101)]
-    attribute_columns = [('name','杭州'), ('mobile',15100000000), ('address','China'), ('age',20)]
+    attribute_columns = [('name','杭州'), ('growth',0.95), ('type','sub-provincial city'), ('postal code',310000), ('Alibaba', True), ('chengdu', False)]
     row = Row(primary_key, attribute_columns)
     condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST) # Expect not exist: put it into table only when this row is not exist.
     consumed, return_row = ots_client.put_row(table_name, row, condition)
@@ -28,11 +28,11 @@ def put_row(ots_client):
 
 def get_row(ots_client):
     primary_key = [('uid',1), ('gid',101)]
-    columns_to_get = ['name', 'address', 'age'] # given a list of columns to get, or empty list if you want to get entire row.
+    columns_to_get = ['name', 'growth', 'type'] # given a list of columns to get, or empty list if you want to get entire row.
 
     cond = CompositeColumnCondition(LogicalOperator.AND)
-    cond.add_sub_condition(SingleColumnCondition("age", 20, ComparatorType.EQUAL))
-    cond.add_sub_condition(SingleColumnCondition("addr", 'china', ComparatorType.NOT_EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("growth", 0.9, ComparatorType.NOT_EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("name", '杭州', ComparatorType.EQUAL))
 
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, cond, 1)
 
@@ -48,11 +48,11 @@ def get_row2(ots_client):
     columns_to_get = []
 
     cond = CompositeColumnCondition(LogicalOperator.AND)
-    cond.add_sub_condition(SingleColumnCondition("age", 20, ComparatorType.EQUAL))
-    cond.add_sub_condition(SingleColumnCondition("addr", 'china', ComparatorType.NOT_EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("growth", 0.9, ComparatorType.NOT_EQUAL))
+    cond.add_sub_condition(SingleColumnCondition("name", '杭州', ComparatorType.EQUAL))
 
     consumed, return_row, next_token = ots_client.get_row(table_name, primary_key, columns_to_get, cond, 1,
-                                                          start_column = 'age', end_column = 'name')
+                                                          start_column = 'Alibaba', end_column = 'name')
 
     print ('Read succeed, consume %s read cu.' % consumed.read)
 

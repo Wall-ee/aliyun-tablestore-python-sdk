@@ -35,36 +35,22 @@ class PlainBufferInputStream(object):
         return bytes(self.buffer[pos])
 
     def read_raw_little_endian64(self):
-        b1 = ord(self.read_raw_byte())
-        b2 = ord(self.read_raw_byte())
-        b3 = ord(self.read_raw_byte())
-        b4 = ord(self.read_raw_byte())
-        b5 = ord(self.read_raw_byte())
-        b6 = ord(self.read_raw_byte())
-        b7 = ord(self.read_raw_byte())
-        b8 = ord(self.read_raw_byte())
-        return ((long(b1) & 0xff)) | ((long(b2) & 0xff) << 8) | ((long(b3) & 0xff) << 16) | \
-            ((long(b4) & 0xff) << 24) | ((long(b5) & 0xff) << 32) | ((long(b6) & 0xff) << 40) |\
-            ((long(b7) & 0xff) << 48) | ((long(b8) & 0xff) << 56)
+        return struct.unpack('<q', self.read_bytes(8))[0]
 
     def read_raw_little_endian32(self):
-        b1 = ord(self.read_raw_byte())
-        b2 = ord(self.read_raw_byte())
-        b3 = ord(self.read_raw_byte())
-        b4 = ord(self.read_raw_byte())
-        return ((int(b1) & 0xff)) | ((int(b2) & 0xff) << 8) | ((int(b3) & 0xff) << 16) | ((int(b4) & 0xff) << 24)
+        return struct.unpack('<i', self.read_bytes(4))[0]
     
     def read_boolean(self):
-        return self.read_raw_byte() != 0
+        return struct.unpack('<?', self.read_bytes(1))[0]
 
     def read_double(self):
-        return self.read_raw_little_endian64()
+        return struct.unpack('<q', self.read_bytes(8))[0]
 
     def read_int32(self):
-        return self.read_raw_little_endian32()
+        return struct.unpack('<i', self.read_bytes(4))[0]
 
     def read_int64(self):
-        return self.read_raw_little_endian64()
+        return struct.unpack('<q', self.read_bytes(8))[0]
 
     def read_bytes(self, size):
         if len(self.buffer) - self.cur_pos < size:
@@ -108,31 +94,16 @@ class PlainBufferOutputStream(object):
         self.buffer.append(value)
 
     def write_raw_little_endian32(self, value):
-        self.write_raw_byte((value) & 0xFF)
-        self.write_raw_byte((value >> 8) & 0xFF)
-        self.write_raw_byte((value >> 16) & 0xFF)
-        self.write_raw_byte((value >> 24) & 0xFF)
+        self.write_bytes(struct.pack("i", value))
 
     def write_raw_little_endian64(self, value):
-        self.write_raw_byte(int(value) & 0xFF)
-        self.write_raw_byte(int(value >> 8) & 0xFF)
-        self.write_raw_byte(int(value >> 16) & 0xFF)
-        self.write_raw_byte(int(value >> 24) & 0xFF)
-        self.write_raw_byte(int(value >> 32) & 0xFF)
-        self.write_raw_byte(int(value >> 40) & 0xFF)
-        self.write_raw_byte(int(value >> 48) & 0xFF)
-        self.write_raw_byte(int(value >> 56) & 0xFF)
+        self.write_bytes(struct.pack("q", value))
         
     def write_double(self, value):
-        #ba = bytearray(struct.pack("f", value)) 
-        ba, = struct.unpack('l', struct.pack('d', value))
-        self.write_raw_little_endian64(ba)
+        self.write_bytes(struct.pack('d', value))
 
     def write_boolean(self, value):
-        if value:
-            self.write_raw_byte(1)
-        else:
-            self.write_raw_byte(0)
+        self.write_bytes(struct.pack('?', value))
 
     def write_bytes(self, value):
         if len(self.buffer) + len(value) > self.capacity:

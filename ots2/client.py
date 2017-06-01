@@ -271,7 +271,7 @@ class OTSClient(object):
         ``row``是行数据，包括主键和属性列。
         ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``return_type``表示返回类型，目前仅支持返回PrimaryKey，一般用于主键列自增中。
+        ``return_type``表示返回类型，是ots2.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
 
         返回：本次操作消耗的CapacityUnit和需要返回的行数据。
 
@@ -299,6 +299,7 @@ class OTSClient(object):
         ``row``表示更新的行数据，包括主键列和属性列，主键列是list；属性列是dict。
         ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
+        ``return_type``表示返回类型，是ots2.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
 
         返回：本次操作消耗的CapacityUnit和需要返回的行数据return_row
 

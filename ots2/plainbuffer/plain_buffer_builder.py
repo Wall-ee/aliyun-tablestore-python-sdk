@@ -28,7 +28,6 @@ class PlainBufferBuilder(object):
             size += len(value)
         else:
             raise OTSClientError("Unsupported primary key type:" + str(type(value)))
-        
         return size
        
     @staticmethod
@@ -48,8 +47,10 @@ class PlainBufferBuilder(object):
     def compute_column_value_size(value):
         size = 1
         size += const.LITTLE_ENDIAN_32_SIZE + 1
-        
-        if isinstance(value, int) or isinstance(value, long): 
+
+        if isinstance(value, bool):
+            size += 1
+        elif isinstance(value, int) or isinstance(value, long): 
             size += LITTLE_ENDIAN_64_SIZE
         elif isinstance(value, str) or isinstance(value, unicode):
             size += const.LITTLE_ENDIAN_32_SIZE
@@ -57,8 +58,6 @@ class PlainBufferBuilder(object):
         elif isinstance(value, bytearray):
             size += const.LITTLE_ENDIAN_32_SIZE
             size += len(value)
-        elif isinstance(value, bool):
-            size += 1
         elif isinstance(value, float):
             size += LITTLE_ENDIAN_64_SIZE
         else:

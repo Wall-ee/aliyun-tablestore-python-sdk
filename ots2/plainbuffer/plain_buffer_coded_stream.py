@@ -86,11 +86,7 @@ class PlainBufferCodedInputStream(object):
         elif column_type == VT_BOOLEAN:
             bool_value = self.inputStream.read_boolean()
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_BOOLEAN)
-            bool_int8 = 1
-            if bool_value is None:
-                bool_int8 = 0
-            #bool_int8 = bool_value != null ? 1 : 0
-            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, bool_int8)
+            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, bool_value)
             self.read_tag()
             return (bool_value, cell_check_sum)
         elif column_type == VT_DOUBLE:
@@ -154,7 +150,7 @@ class PlainBufferCodedInputStream(object):
             column_value, cell_check_sum = self.read_column_value(cell_check_sum)
         # skip CELL_TYPE
         if self.get_last_tag() == TAG_CELL_TYPE:
-            cell_type = PlainBufferCrc8.crc_int8(cell_check_sum, cell_type)
+            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, cell_type)
             self.read_tag()
         
         if self.get_last_tag() == TAG_CELL_TIMESTAMP:
@@ -164,8 +160,8 @@ class PlainBufferCodedInputStream(object):
 
         if self.get_last_tag() == TAG_CELL_CHECKSUM:
             check_sum = ord(self.inputStream.read_raw_byte())
-            if check_sum != cell_check_sum:
-                raise OTSClientError("Checksum mismatch.")
+            if check_sum != cell_check_sum:                
+                raise OTSClientError("Checksum mismatch. expected:" + str(check_sum) + ",actual:" + str(cell_check_sum))
             self.read_tag()
         else:
             raise OTSClientError("Expect TAG_CELL_CHECKSUM but it was " + str(self.get_last_tag()))
@@ -292,7 +288,16 @@ class PlainBufferCodedOutputStream(object):
 
     def write_column_value_with_checksum(self, value, cell_check_sum):
         self.write_tag(TAG_CELL_VALUE)
-        if isinstance(value, int) or isinstance(value, long):
+        if isinstance(value, bool):
+            self.outputStream.write_raw_little_endian32(2)
+            self.outputStream.write_raw_byte(VT_BOOLEAN)
+            self.outputStream.write_boolean(value)
+            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_BOOLEAN)
+            if value:
+                cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 1)
+            else:
+                cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 0)
+        elif isinstance(value, int) or isinstance(value, long):
             self.outputStream.write_raw_little_endian32(1 + LITTLE_ENDIAN_64_SIZE)
             self.outputStream.write_raw_byte(VT_INTEGER)
             self.outputStream.write_raw_little_endian64(value)
@@ -316,15 +321,6 @@ class PlainBufferCodedOutputStream(object):
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_BLOB)
             cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(value))
             cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value.decode("utf-8"))
-        elif isinstance(value, bool):
-            self.outputStream.write_raw_little_endian32(2)
-            self.outputStream.write_raw_byte(VT_BOOLEAN)
-            self.outputStream.write_boolean(value)
-            cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_BOOLEAN)
-            if value:
-                cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 1)
-            else:
-                cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 0)
         elif isinstance(value, float):
             double_in_long, = struct.unpack("l", struct.pack("d", value))
             self.outputStream.write_raw_little_endian32(1 + LITTLE_ENDIAN_64_SIZE)
@@ -337,7 +333,10 @@ class PlainBufferCodedOutputStream(object):
         return cell_check_sum
 
     def write_column_value(self, value):
-        if isinstance(value, int) or isinstance(value, long):
+        if isinstance(value, bool):
+            self.outputStream.write_raw_byte(VT_BOOLEAN)
+            self.outputStream.write_boolean(value)
+        elif isinstance(value, int) or isinstance(value, long):
             self.outputStream.write_raw_byte(VT_INTEGER)
             self.outputStream.write_raw_little_endian64(value)
         elif isinstance(value, str) or isinstance(value, unicode):
@@ -348,9 +347,6 @@ class PlainBufferCodedOutputStream(object):
             self.outputStream.write_raw_byte(VT_BLOB)
             self.outputStream.write_raw_little_endian32(len(value))
             self.outputStream.write_bytes(value)
-        elif isinstance(value, bool):
-            self.outputStream.write_raw_byte(VT_BOOLEAN)
-            self.outputStream.write_boolean(value)
         elif isinstance(value, float):  
             self.outputStream.write_raw_byte(VT_DOUBLE)
             self.outputStream.write_double(value)
