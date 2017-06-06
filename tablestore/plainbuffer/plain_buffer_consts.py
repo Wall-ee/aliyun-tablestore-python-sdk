@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-import ots2.const as const
+import tablestore.const as const
 
 const.HEADER = 0x75
 

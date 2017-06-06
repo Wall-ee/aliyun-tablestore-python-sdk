@@ -15,12 +15,12 @@ from email.utils import parsedate
 
 import google.protobuf.text_format as text_format
 
-import ots2
-from ots2.error import *
-from ots2.protobuf.encoder import OTSProtoBufferEncoder
-from ots2.protobuf.decoder import OTSProtoBufferDecoder
-import ots2.protobuf.table_store_pb2 as pb2
-import ots2.protobuf.table_store_filter_pb2 as filter_pb2
+import tablestore
+from tablestore.error import *
+from tablestore.protobuf.encoder import OTSProtoBufferEncoder
+from tablestore.protobuf.decoder import OTSProtoBufferDecoder
+import tablestore.protobuf.table_store_pb2 as pb2
+import tablestore.protobuf.table_store_filter_pb2 as filter_pb2
 
 
 class OTSProtocol(object):
@@ -31,7 +31,7 @@ class OTSProtocol(object):
     decoder_class = OTSProtoBufferDecoder
 
     python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
-    user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (ots2.__version__, platform.system(), platform.release(), platform.machine(), python_version)
+    user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (tablestore.__version__, platform.system(), platform.release(), platform.machine(), python_version)
 
     api_list = {
         'CreateTable',

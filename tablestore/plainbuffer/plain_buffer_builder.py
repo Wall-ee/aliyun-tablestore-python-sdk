@@ -1,8 +1,8 @@
 # -*- coding: utf8 -*-
 
 import sys
-import ots2 
-from ots2.metadata import *
+import tablestore 
+from tablestore.metadata import *
 from plain_buffer_consts import *
 from plain_buffer_crc8 import *
 from plain_buffer_stream import *
@@ -14,7 +14,7 @@ class PlainBufferBuilder(object):
         size = 1   # TAG_CELL_VALUE
         size += const.LITTLE_ENDIAN_32_SIZE + 1  # length + type
 
-        if (value is INF_MIN) or (value is INF_MAX) or (value is PK_AUTO_INCR):
+        if value in [INF_MIN, INF_MAX, PK_AUTO_INCR]:
             size += 1
             return size
 

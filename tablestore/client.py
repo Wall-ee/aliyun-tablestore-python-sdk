@@ -9,11 +9,11 @@ import urlparse
 import time
 import _strptime
 
-from ots2.error import *
-from ots2.protocol import OTSProtocol
-from ots2.connection import ConnectionPool
-from ots2.metadata import *
-from ots2.retry import DefaultRetryPolicy
+from tablestore.error import *
+from tablestore.protocol import OTSProtocol
+from tablestore.connection import ConnectionPool
+from tablestore.metadata import *
+from tablestore.retry import DefaultRetryPolicy
 
 
 class OTSClient(object):
@@ -21,7 +21,7 @@ class OTSClient(object):
     ``OTSClient``实现了OTS服务的所有接口。用户可以通过创建``OTSClient``的实例，并调用它的
     方法来访问OTS服务的所有功能。用户可以在初始化方法``__init__()``中设置各种权限、连接等参数。
 
-    除非另外说明，``OTSClient``的所有接口都以抛异常的方式处理错误(请参考模块``ots.error``
+    除非另外说明，``OTSClient``的所有接口都以抛异常的方式处理错误(请参考模块``tablestore.error``
     )，即如果某个函数有返回值，则会在描述中说明；否则返回None。
     """
 
@@ -29,7 +29,7 @@ class OTSClient(object):
     DEFAULT_ENCODING = 'utf8'
     DEFAULT_SOCKET_TIMEOUT = 50
     DEFAULT_MAX_CONNECTION = 50
-    DEFAULT_LOGGER_NAME = 'ots2-client'
+    DEFAULT_LOGGER_NAME = 'tablestore-client'
 
     protocol_class = OTSProtocol
     connection_pool_class = ConnectionPool 
@@ -38,7 +38,7 @@ class OTSClient(object):
         """
         初始化``OTSClient``实例。
 
-        ``end_point``是OTS服务的地址（例如 'http://instance.cn-hangzhou.ots.aliyun.com:80'），必须以'http://'开头。
+        ``end_point``是OTS服务的地址（例如 'http://instance.cn-hangzhou.ots.aliyun.com'），必须以'http://'或'https://'开头。
 
         ``access_key_id``是访问OTS服务的accessid，通过官方网站申请或通过管理员获取。
 
@@ -59,9 +59,9 @@ class OTSClient(object):
 
         示例：创建一个OTSClient实例
 
-            from ots2.client import OTSClient
+            from tablestore.client import OTSClient
 
-            ots_client = OTSClient('your_instance_endpoint', 'your_user_id', 'your_user_key', 'your_instance_name')
+            client = OTSClient('your_instance_endpoint', 'your_user_id', 'your_user_key', 'your_instance_name')
         """
 
         self.encoding = kwargs.get('encoding')
@@ -91,11 +91,11 @@ class OTSClient(object):
 
         if scheme != 'http' and scheme != 'https':
             raise OTSClientError(
-                "protocol of end_point must be 'http' or 'https', e.g. http://ots.aliyuncs.com:80."
+                "protocol of end_point must be 'http' or 'https', e.g. http://instance.cn-hangzhou.ots.aliyun.com."
             )
         if host == '':
             raise OTSClientError(
-                "host of end_point should be specified, e.g. http://ots.aliyuncs.com:80."
+                "host of end_point should be specified, e.g. http://instance.cn-hangzhou.ots.aliyun.com."
             )
 
         # intialize protocol instance via user configuration
@@ -146,10 +146,10 @@ class OTSClient(object):
         """
         说明：根据表信息创建表。
 
-        ``table_meta``是``ots.metadata.TableMeta``类的实例，它包含表名和PrimaryKey的schema，
+        ``table_meta``是``tablestore.metadata.TableMeta``类的实例，它包含表名和PrimaryKey的schema，
         请参考``TableMeta``类的文档。当创建了一个表之后，通常要等待1分钟时间使partition load
         完成，才能进行各种操作。
-        ``reserved_throughput``是``ots.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
+        ``reserved_throughput``是``tablestore.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
 
         返回：无。
 
@@ -158,7 +158,7 @@ class OTSClient(object):
             schema_of_primary_key = [('gid', 'INTEGER'), ('uid', 'INTEGER')]
             table_meta = TableMeta('myTable', schema_of_primary_key)
             reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
-            ots_client.create_table(table_meta, reserved_throughput)
+            client.create_table(table_meta, reserved_throughput)
         """
 
         self._request_helper('CreateTable', table_meta, table_options, reserved_throughput)
@@ -173,7 +173,7 @@ class OTSClient(object):
 
         示例：
 
-            ots_client.delete_table('myTable')
+            client.delete_table('myTable')
         """
 
         self._request_helper('DeleteTable', table_name)
@@ -188,7 +188,7 @@ class OTSClient(object):
 
         示例：
 
-            table_list = ots_client.list_table()
+            table_list = client.list_table()
         """
 
         return self._request_helper('ListTable')
@@ -198,16 +198,16 @@ class OTSClient(object):
         说明：更新表属性，目前只支持修改预留读写吞吐量。
         
         ``table_name``是对应的表名。
-        ``reserved_throughput``是``ots2.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
+        ``reserved_throughput``是``tablestore.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
 
         返回：针对该表的预留读写吞吐量的最近上调时间、最近下调时间和当天下调次数。
 
-        ``update_table_response``表示更新的结果，是ots2.metadata.UpdateTableResponse类的实例。
+        ``update_table_response``表示更新的结果，是tablestore.metadata.UpdateTableResponse类的实例。
 
         示例：
 
             reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
-            update_response = ots_client.update_table('myTable', reserved_throughput)
+            update_response = client.update_table('myTable', reserved_throughput)
         """
 
         return self._request_helper(
@@ -222,11 +222,11 @@ class OTSClient(object):
 
         返回：表的描述信息。
 
-        ``describe_table_response``表示表的描述信息，是ots2.metadata.DescribeTableResponse类的实例。
+        ``describe_table_response``表示表的描述信息，是tablestore.metadata.DescribeTableResponse类的实例。
 
         示例：
 
-            describe_table_response = ots_client.describe_table('myTable')
+            describe_table_response = client.describe_table('myTable')
         """
 
         return self._request_helper('DescribeTable', table_name)
@@ -246,7 +246,7 @@ class OTSClient(object):
 
         返回：本次操作消耗的CapacityUnit、主键列和属性列。
 
-        ``consumed``表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        ``consumed``表示消耗的CapacityUnit，是tablestore.metadata.CapacityUnit类的实例。
         ``return_row``表示行数据，包括主键列和属性列，类型都为list，如：[('PK0',value0), ('PK1',value1)]。
         ``next_token``表示宽行读取时下一次读取的位置，编码的二进制。
 
@@ -254,7 +254,7 @@ class OTSClient(object):
 
             primary_key = [('gid',1), ('uid',101)]
             columns_to_get = ['name', 'address', 'age']
-            consumed, return_row, next_token = ots_client.get_row('myTable', primary_key, columns_to_get)
+            consumed, return_row, next_token = client.get_row('myTable', primary_key, columns_to_get)
         """
 
         return self._request_helper(
@@ -269,13 +269,13 @@ class OTSClient(object):
 
         ``table_name``是对应的表名。
         ``row``是行数据，包括主键和属性列。
-        ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
+        ``condition``表示执行操作前做条件检查，满足条件才执行，是tablestore.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``return_type``表示返回类型，是ots2.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
+        ``return_type``表示返回类型，是tablestore.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
 
         返回：本次操作消耗的CapacityUnit和需要返回的行数据。
 
-        consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        consumed表示消耗的CapacityUnit，是tablestore.metadata.CapacityUnit类的实例。
         return_row表示返回的行数据，可能包括主键、属性列。
 
         示例：
@@ -284,7 +284,7 @@ class OTSClient(object):
             attribute_columns = [('name','张三'), ('mobile',111111111), ('address','中国A地'), ('age',20)]
             row = Row(primary_key, attribute_columns)
             condition = Condition('EXPECT_NOT_EXIST')
-            consumed, return_row = ots_client.put_row('myTable', row, condition)
+            consumed, return_row = client.put_row('myTable', row, condition)
         """
 
         return self._request_helper(
@@ -297,13 +297,13 @@ class OTSClient(object):
 
         ``table_name``是对应的表名。
         ``row``表示更新的行数据，包括主键列和属性列，主键列是list；属性列是dict。
-        ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
+        ``condition``表示执行操作前做条件检查，满足条件才执行，是tablestore.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
-        ``return_type``表示返回类型，是ots2.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
+        ``return_type``表示返回类型，是tablestore.metadata.ReturnType类的实例，目前仅支持返回PrimaryKey，一般用于主键列自增中。
 
         返回：本次操作消耗的CapacityUnit和需要返回的行数据return_row
 
-        consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        consumed表示消耗的CapacityUnit，是tablestore.metadata.CapacityUnit类的实例。
         return_row表示需要返回的行数据。
 
         示例：
@@ -316,7 +316,7 @@ class OTSClient(object):
             }
             row = Row(primary_key, update_of_attribute_columns)
             condition = Condition('EXPECT_EXIST')
-            consumed = ots_client.update_row('myTable', row, condition) 
+            consumed = client.update_row('myTable', row, condition) 
         """
 
         return self._request_helper(
@@ -329,12 +329,12 @@ class OTSClient(object):
 
         ``table_name``是对应的表名。
         ``row``表示行数据，在delete_row仅包含主键。
-        ``condition``表示执行操作前做条件检查，满足条件才执行，是ots2.metadata.Condition类的实例。
+        ``condition``表示执行操作前做条件检查，满足条件才执行，是tablestore.metadata.Condition类的实例。
         目前只支持对行的存在性进行检查，检查条件包括：'IGNORE'，'EXPECT_EXIST'和'EXPECT_NOT_EXIST'。
 
         返回：本次操作消耗的CapacityUnit和需要返回的行数据return_row
 
-        consumed表示消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        consumed表示消耗的CapacityUnit，是tablestore.metadata.CapacityUnit类的实例。
         return_row表示需要返回的行数据。
 
         示例：
@@ -342,7 +342,7 @@ class OTSClient(object):
             primary_key = [('gid',1), ('uid',101)]
             row = Row(primary_key)
             condition = Condition('IGNORE')
-            consumed, return_row = ots_client.delete_row('myTable', row, condition) 
+            consumed, return_row = client.delete_row('myTable', row, condition) 
         """
 
         return self._request_helper(
@@ -359,9 +359,9 @@ class OTSClient(object):
         request.add(TableInBatchGetRowItem(myTable2, primary_keys, column_to_get=None, column_filter=None))
         request.add(TableInBatchGetRowItem(myTable3, primary_keys, column_to_get=None, column_filter=None))
 
-        response = ots_client.batch_get_row(request)
+        response = client.batch_get_row(request)
 
-        ``response``为返回的结果，类型为ots2.metadata.BatchGetRowResponse
+        ``response``为返回的结果，类型为tablestore.metadata.BatchGetRowResponse
 
         示例：
             cond = CompositeColumnCondition(LogicalOperator.AND)
@@ -383,7 +383,7 @@ class OTSClient(object):
             primary_keys.append([('gid',2), ('uid',0)])
             request.add(TableInBatchGetRowItem('myTable1', primary_keys, column_to_get, cond))
 
-            result = ots_client.batch_get_row(request)
+            result = client.batch_get_row(request)
 
             table0 = result.get_result_by_table('myTable0')
             table1 = result.get_result_by_table('myTable1')
@@ -399,9 +399,9 @@ class OTSClient(object):
         request.add(TableInBatchWriteRowItem(table0, row_items))
         request.add(TableInBatchWriteRowItem(table1, row_items))
 
-        response = ots_client.batch_write_row(request)
+        response = client.batch_write_row(request)
 
-        ``response``为返回的结果，类型为ots2.metadata.BatchWriteRowResponse
+        ``response``为返回的结果，类型为tablestore.metadata.BatchWriteRowResponse
 
         示例：
             # put 
@@ -465,7 +465,7 @@ class OTSClient(object):
 
         返回：符合条件的结果列表。
 
-        ``consumed``表示本次操作消耗的CapacityUnit，是ots2.metadata.CapacityUnit类的实例。
+        ``consumed``表示本次操作消耗的CapacityUnit，是tablestore.metadata.CapacityUnit类的实例。
         ``next_start_primary_key``表示下次get_range操作的起始点的主健列，类型为dict。
         ``row_list``表示本次操作返回的行数据列表，格式为：[Row, ...]。
 
@@ -474,7 +474,7 @@ class OTSClient(object):
             inclusive_start_primary_key = [('gid',1), ('uid',INF_MIN)] 
             exclusive_end_primary_key = [('gid',4), ('uid',INF_MAX)] 
             columns_to_get = ['name', 'address', 'mobile', 'age']
-            consumed, next_start_primary_key, row_list = ots_client.get_range(
+            consumed, next_start_primary_key, row_list = client.get_range(
                         'myTable', 'FORWARD', 
                         inclusive_start_primary_key, exclusive_end_primary_key,
                         columns_to_get, 100
@@ -509,7 +509,7 @@ class OTSClient(object):
         ``direction``表示范围的方向，取值为Direction的FORWARD和BACKWARD。
         ``inclusive_start_primary_key``表示范围的起始主键（在范围内）。
         ``exclusive_end_primary_key``表示范围的结束主键（不在范围内）。
-        ``consumed_counter``用于消耗的CapacityUnit统计，是ots2.metadata.CapacityUnit类的实例。
+        ``consumed_counter``用于消耗的CapacityUnit统计，是tablestore.metadata.CapacityUnit类的实例。
         ``columns_to_get``是可选参数，表示要获取的列的名称列表，类型为list；如果不填，表示获取所有列。
         ``count``是可选参数，表示最多读取多少行；如果不填，则尽量读取整个范围内的所有行。
         ``column_filter``是可选参数，表示读取指定条件的行

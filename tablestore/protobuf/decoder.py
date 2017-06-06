@@ -2,10 +2,10 @@
 
 import google.protobuf.text_format as text_format
 
-from ots2.metadata import *
-from ots2.plainbuffer.plain_buffer_builder import *
-import ots2.protobuf.table_store_pb2 as pb2
-import ots2.protobuf.table_store_filter_pb2 as filter_pb2
+from tablestore.metadata import *
+from tablestore.plainbuffer.plain_buffer_builder import *
+import tablestore.protobuf.table_store_pb2 as pb2
+import tablestore.protobuf.table_store_filter_pb2 as filter_pb2
 
 class OTSProtoBufferDecoder(object):
 

@@ -1,13 +1,13 @@
 # -*- coding: utf8 -*-
 
 import unittest
-from lib.ots2_api_test_base import OTS2APITestBase
-from ots2 import *
-from ots2.error import *
+from lib.api_test_base import APITestBase
+from tablestore import *
+from tablestore.error import *
 import time
 import logging
 
-class TableOperationTest(OTS2APITestBase):
+class TableOperationTest(APITestBase):
 
     """表级别操作测试"""
 

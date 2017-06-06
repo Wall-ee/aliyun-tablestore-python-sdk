@@ -1,17 +1,17 @@
 # -*- coding: utf8 -*-
 
 import unittest
-from lib.ots2_api_test_base import OTS2APITestBase
-from ots2 import *
+from lib.api_test_base import APITestBase
+from tablestore import *
 import lib.restriction as restriction 
 import copy
 from collections import OrderedDict
-from ots2.error import *
+from tablestore.error import *
 import math
 import time
 
 
-class RowOpTest(OTS2APITestBase):
+class RowOpTest(APITestBase):
 
     """行读写测试"""
     # 行操作API： GetRow, PutRow, UpdateRow, BatchGetRow, BatchWriteRow, GetRange

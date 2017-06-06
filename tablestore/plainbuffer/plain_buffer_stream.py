@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 
 import struct
-from ots2.error import *
+from tablestore.error import *
 
 class PlainBufferInputStream(object):
     def __init__(self, data_buffer):

@@ -29,7 +29,7 @@ PIP安装
 
 .. code-block:: bash
 
-    $ pip install ots2 
+    $ pip install tablestore 
 
 Github安装
 ------------
@@ -89,7 +89,7 @@ Github安装
 
     $ export OTS_TEST_ACCESS_KEY_ID=<your access id>
     $ export OTS_TEST_ACCESS_KEY_SECRET=<your access key>
-    $ export OTS_TEST_ENDPOINT=<ots service endpoint>
+    $ export OTS_TEST_ENDPOINT=<tablestore service endpoint>
     $ export OTS_TEST_INSTANCE=<your instance name>
 
 2. 运行case

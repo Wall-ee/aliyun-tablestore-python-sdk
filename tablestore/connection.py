@@ -7,7 +7,7 @@ from urllib3.poolmanager import PoolManager
 from urllib3.connectionpool import HTTPConnectionPool
 import certifi
 
-from ots2.error import *
+from tablestore.error import *
 
 _NETWORK_IO_TIME_COUNT_FLAG = False
 _network_io_time = 0

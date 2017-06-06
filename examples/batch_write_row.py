@@ -1,24 +1,24 @@
 # -*- coding: utf8 -*-
 
 from example_config import *
-from ots2 import *
+from tablestore import *
 import time
 
 table_name = 'OTSBatchWriteRowSimpleExample'
 
-def create_table(ots_client):
+def create_table(client):
     schema_of_primary_key = [('gid', 'INTEGER'), ('uid', 'INTEGER')]
     table_meta = TableMeta(table_name, schema_of_primary_key)
     table_options = TableOptions()
     reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
-    ots_client.create_table(table_meta, table_options, reserved_throughput)
+    client.create_table(table_meta, table_options, reserved_throughput)
     print ('Table has been created.')
 
-def delete_table(ots_client):
-    ots_client.delete_table(table_name)
+def delete_table(client):
+    client.delete_table(table_name)
     print ('Table \'%s\' has been deleted.' % table_name)
 
-def batch_write_row(ots_client):
+def batch_write_row(client):
     # batch put 10 rows and update 10 rows on exist table, delete 10 rows on a not-exist table.
     put_row_items = []
     for i in range(0, 10):
@@ -48,7 +48,7 @@ def batch_write_row(ots_client):
     request = BatchWriteRowRequest()
     request.add(TableInBatchWriteRowItem(table_name, put_row_items))
     request.add(TableInBatchWriteRowItem('notExistTable', delete_row_items))
-    result = ots_client.batch_write_row(request)
+    result = client.batch_write_row(request)
 
     print ('Result status: %s'%(result.is_all_succeed()))
     print ('check first table\'s put results:')
@@ -73,14 +73,14 @@ def batch_write_row(ots_client):
         print ('Delete failed, error code: %s, error message: %s' % (item.error_code, item.error_message))
 
 if __name__ == '__main__':
-    ots_client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE)
+    client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE)
     try:
-        delete_table(ots_client)
+        delete_table(client)
     except:
         pass
-    create_table(ots_client)
+    create_table(client)
 
     time.sleep(3) # wait for table ready
-    batch_write_row(ots_client)
-    delete_table(ots_client)
+    batch_write_row(client)
+    delete_table(client)
 

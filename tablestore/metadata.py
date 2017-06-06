@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-from ots2.error import *
+from tablestore.error import *
 
 __all__ = [
     'INF_MIN',
@@ -86,8 +86,8 @@ class ColumnType(object):
     INF_MAX = "INF_MAX"
 
 class ReturnType(object):
-    RT_NONE = 'RT_NONE'
-    RT_PK = 'RT_PK'
+    RT_NONE = "RT_NONE"
+    RT_PK = "RT_PK"
 
 class Column(object):
     def __init__(self, name, value = None, timestamp = None):
@@ -401,8 +401,8 @@ class BatchGetRowRequest(object):
 
     def add(self, table_item):
         """
-        说明：添加ots2.metadata.TableInBatchGetRowItem对象
-        注意：对象内部存储ots2.metadata.TableInBatchGetRowItem对象采用‘字典’的形式，Key是表
+        说明：添加tablestore.metadata.TableInBatchGetRowItem对象
+        注意：对象内部存储tablestore.metadata.TableInBatchGetRowItem对象采用‘字典’的形式，Key是表
               的名字，因此如果插入同表名的对象，那么之前的对象将被覆盖。
         """
         if not isinstance(table_item, TableInBatchGetRowItem):
@@ -473,8 +473,8 @@ class BatchWriteRowRequest(object):
 
     def add(self, table_item):
         """
-        说明：添加ots2.metadata.TableInBatchWriteRowItem对象
-        注意：对象内部存储ots2.metadata.TableInBatchWriteRowItem对象采用‘字典’的形式，Key是表
+        说明：添加tablestore.metadata.TableInBatchWriteRowItem对象
+        注意：对象内部存储tablestore.metadata.TableInBatchWriteRowItem对象采用‘字典’的形式，Key是表
               的名字，因此如果插入同表名的对象，那么之前的对象将被覆盖。
         """
         if not isinstance(table_item, TableInBatchWriteRowItem):

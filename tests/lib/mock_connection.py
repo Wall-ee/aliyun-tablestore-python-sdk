@@ -8,10 +8,10 @@ import urlparse
 
 import google.protobuf.text_format as text_format
 
-from ots2 import * 
-from ots2.metadata import *
-from ots2.error import *
-import ots2.protobuf.table_store_pb2 as pb2
+from tablestore import * 
+from tablestore.metadata import *
+from tablestore.error import *
+import tablestore.protobuf.table_store_pb2 as pb2
 
 
 class MockConnection(object):

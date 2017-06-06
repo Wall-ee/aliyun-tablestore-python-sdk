@@ -1,14 +1,14 @@
 # -*- coding: utf8 -*-
 
 import unittest
-from lib.ots2_api_test_base import OTS2APITestBase
+from lib.api_test_base import APITestBase
 import lib.restriction as restriction
-from ots2 import *
-from ots2.error import *
+from tablestore import *
+from tablestore.error import *
 import time
 import logging
 
-class FilterAndConditionUpdateTest(OTS2APITestBase):
+class FilterAndConditionUpdateTest(APITestBase):
     TABLE_NAME = "test_filter_and_condition_update"
 
     """ConditionUpdate"""

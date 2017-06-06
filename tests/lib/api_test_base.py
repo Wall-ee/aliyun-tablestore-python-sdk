@@ -3,9 +3,9 @@ import subprocess
 
 import test_config
 from unittest import TestCase
-from ots2 import * 
-from ots2.error import * 
-from ots2.retry import *
+from tablestore import * 
+from tablestore.error import * 
+from tablestore.retry import *
 import types
 import math
 import time
@@ -18,16 +18,16 @@ import os
 import inspect
 import logging
 
-class OTS2APITestBase(TestCase):
+class APITestBase(TestCase):
 
     def __init__(self, methodName=None):
         TestCase.__init__(self, methodName=methodName)
         self.start_time = 0
 
-        self.logger = logging.getLogger('OTS2APITestBase')  
+        self.logger = logging.getLogger('APITestBase')  
         self.logger.setLevel(logging.INFO) 
           
-        fh = logging.FileHandler('ots_sdk_test.log')  
+        fh = logging.FileHandler('tablestore_sdk_test.log')  
         fh.setLevel(logging.INFO)  
           
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  
@@ -41,7 +41,7 @@ class OTS2APITestBase(TestCase):
             test_config.OTS_ID,
             test_config.OTS_SECRET,
             test_config.OTS_INSTANCE,
-            logger_name = 'OTS2APITestBase',
+            logger_name = 'APITestBase',
             retry_policy=NoRetryPolicy(),
         )
         

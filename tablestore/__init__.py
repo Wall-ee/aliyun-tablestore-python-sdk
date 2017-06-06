@@ -47,9 +47,9 @@ __all__ = [
 ]
 
 
-from ots2.client import OTSClient
+from tablestore.client import OTSClient
 
-from ots2.metadata import *
-from ots2.error import *
-from ots2.retry import *
-from ots2.const import *
+from tablestore.metadata import *
+from tablestore.error import *
+from tablestore.retry import *
+from tablestore.const import *
