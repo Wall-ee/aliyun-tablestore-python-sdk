@@ -3,6 +3,8 @@
 from example_config import *
 
 from tablestore import *
+from tablestore.retry import WriteRetryPolicy
+
 import time
 
 table_name = 'OTSPutRowSimpleExample'
@@ -21,30 +23,17 @@ def delete_table(client):
 
 def put_row(client):
     primary_key = [('gid',1), ('uid',101)]
-    attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',20)]
+    attribute_columns = [('name','John'), ('mobile',15100000000), ('address', bytearray('China')), 
+                         ('female', False), ('age', 29.7)]
     row = Row(primary_key, attribute_columns)
 
-    # Expect not exist: put it into table only when this row is not exist.
-    condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST)
+    row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
+    condition = Condition(RowExistenceExpectation.EXPECT_NOT_EXIST, SingleColumnCondition("age", 20, ComparatorType.EQUAL))
     consumed, return_row = client.put_row(table_name, row, condition)
     print (u'Write succeed, consume %s write cu.' % consumed.write)
-
-    row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
-    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, SingleColumnCondition("age", 20, ComparatorType.EQUAL))
-    consumed, return_row = client.put_row(table_name, row, condition)
-    print (u'Write succeed, consume %s write cu.' % consumed.write)
-
-    row.attribute_columns = [('name','John'), ('mobile',15100000000), ('address','China'), ('age',25)]
-
-    # 上面的age已经被修改为25了，现在我们继续期望age=20，TableStore将报错
-    condition = Condition(RowExistenceExpectation.EXPECT_EXIST, SingleColumnCondition("age", 20, ComparatorType.EQUAL))
-    try:
-        consumed,return_row = client.put_row(table_name, row, condition)
-    except OTSServiceError as e:
-        print (str(e))
 
 if __name__ == '__main__':
-    client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE)
+    client = OTSClient(OTS_ENDPOINT, OTS_ID, OTS_SECRET, OTS_INSTANCE, retry_policy = WriteRetryPolicy())
     try:
         delete_table(client)
     except:

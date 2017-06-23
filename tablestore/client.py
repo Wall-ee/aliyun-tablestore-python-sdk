@@ -149,6 +149,8 @@ class OTSClient(object):
         ``table_meta``是``tablestore.metadata.TableMeta``类的实例，它包含表名和PrimaryKey的schema，
         请参考``TableMeta``类的文档。当创建了一个表之后，通常要等待1分钟时间使partition load
         完成，才能进行各种操作。
+        ``table_options``是``tablestore.metadata.TableOptions``类的示例，它包含time_to_live，max_version和
+        max_time_deviation三个参数。
         ``reserved_throughput``是``tablestore.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
 
         返回：无。
@@ -157,8 +159,9 @@ class OTSClient(object):
 
             schema_of_primary_key = [('gid', 'INTEGER'), ('uid', 'INTEGER')]
             table_meta = TableMeta('myTable', schema_of_primary_key)
+            table_options = TableOptions();
             reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
-            client.create_table(table_meta, reserved_throughput)
+            client.create_table(table_meta, table_options, reserved_throughput)
         """
 
         self._request_helper('CreateTable', table_meta, table_options, reserved_throughput)
@@ -198,6 +201,7 @@ class OTSClient(object):
         说明：更新表属性，目前只支持修改预留读写吞吐量。
         
         ``table_name``是对应的表名。
+        ``table_options``是``tablestore.metadata.TableOptions``类的示例，它包含time_to_live，max_version和max_time_deviation三个参数。
         ``reserved_throughput``是``tablestore.metadata.ReservedThroughput``类的实例，表示预留读写吞吐量。
 
         返回：针对该表的预留读写吞吐量的最近上调时间、最近下调时间和当天下调次数。
@@ -207,7 +211,8 @@ class OTSClient(object):
         示例：
 
             reserved_throughput = ReservedThroughput(CapacityUnit(0, 0))
-            update_response = client.update_table('myTable', reserved_throughput)
+            table_options = TableOptions();
+            update_response = client.update_table('myTable', table_options, reserved_throughput)
         """
 
         return self._request_helper(

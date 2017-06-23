@@ -96,7 +96,7 @@ class DefaultRetryPolicy(RetryPolicy):
 
     def is_repeatable_api(self, api_name):
         return RetryUtil.is_repeatable_api(api_name)
-
+    
     def _can_retry(self, retry_times, exception, api_name):
 
         if RetryUtil.should_retry_no_matter_which_api(exception):
@@ -152,3 +152,12 @@ class NoDelayRetryPolicy(DefaultRetryPolicy):
 
     def get_retry_delay(self, retry_times, exception, api_name):
         return 0
+
+class WriteRetryPolicy(DefaultRetryPolicy):
+    """
+    相对于默认重试策略，此策略对写操作也会重试
+    """
+
+    def is_repeatable_api(self, api_name):
+        return api_name in ['ListTable', 'DescribeTable', 'GetRow', 'BatchGetRow', 'GetRange',
+                            'PutRow', 'UpdatRow', 'DeleteRow', 'BatchWriteRow']

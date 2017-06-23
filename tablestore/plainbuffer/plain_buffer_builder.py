@@ -73,7 +73,6 @@ class PlainBufferBuilder(object):
         size = 1
         size += 1 + const.LITTLE_ENDIAN_32_SIZE
         size += len(column_name)
-        timestamp = None
         if column_value is not None:
             size += PlainBufferBuilder.compute_column_value_size(column_value) 
         if timestamp is not None:
