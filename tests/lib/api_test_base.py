@@ -348,3 +348,11 @@ class APITestBase(TestCase):
             columns.append((key,  value))
         return pks, columns
 
+    def get_python_version(self):
+        if isinstance(sys.version_info, tuple):
+            python_version = '%s_%s_%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+        else:
+            python_version = '%s_%s_%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
+        return python_version
+        
+

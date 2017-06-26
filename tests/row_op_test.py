@@ -739,7 +739,7 @@ class RowOpTest(APITestBase):
         #这里假设MaxPKColumnNum <=10 ,不然PKname的长度不能符合要求
         pk_schema, pk = self.get_primary_keys(restriction.MaxPKColumnNum, "STRING", pk_name="P" * (restriction.MaxColumnNameLength - 1), pk_value="x" * (restriction.MaxPKStringValueLength))
 
-        table_name = "table_test"
+        table_name = "table_test" + self.get_python_version()
         table_meta = TableMeta(table_name, pk_schema)
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(restriction.MaxReadWriteCapacityUnit, restriction.MaxReadWriteCapacityUnit))
@@ -783,7 +783,7 @@ class RowOpTest(APITestBase):
 
     def test_batch_get_on_the_same_row(self):
         """创建一个表T，一个行R，数据量为 < 1KB，BatchGetRow([(T, [R, R])])，重复行，期望返回OTSInvalidPK，再一次BatchGetRow([(T, [R]), (T, [R]])，同名表在不同组，期望返回OTSInvalidPK"""
-        table_name = 'table_test_batch_get_on_the_same_row'
+        table_name = 'table_test_batch_get_on_the_same_row' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'INTEGER')])
         pk_dict = [('PK0','a'), ('PK1',1)]
         column_dict = [('col1', 'M' * 500)]
@@ -813,7 +813,7 @@ class RowOpTest(APITestBase):
 
     def test_batch_write_on_the_same_row(self):
         """BatchWriteRow，分别为put, delete, update，操作在同一行（在同一个表名下，或者重复的两个表名下），期望返回OTSInvalidPK"""
-        table_name = 'table_test_batch_write_on_the_same_row'
+        table_name = 'table_test_batch_write_on_the_same_row' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'INTEGER')])
         pk_dict = [('PK0','a'), ('PK1',1)]
         pk_dict_2 = [('PK0','a'), ('PK1',2)]
@@ -840,7 +840,7 @@ class RowOpTest(APITestBase):
 
     def test_no_item_in_batch_ops(self):
         """BatchGetRow和BatchWriteRow没有包含任何行，期望返回OTSInvalidPK"""
-        table_name = 'table_test_no_item_in_batch_ops'
+        table_name = 'table_test_no_item_in_batch_ops' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'INTEGER')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(100, 100))
@@ -855,7 +855,7 @@ class RowOpTest(APITestBase):
             write_response = self.client_test.batch_write_row(request)
             self.assert_false()
         except OTSServiceError as e:
-            self.assert_error(e, 400, "OTSParameterInvalid", "No operation is specified for table: 'table_test_no_item_in_batch_ops'.")
+            self.assert_error(e, 400, "OTSParameterInvalid", "No operation is specified for table: 'table_test_no_item_in_batch_ops" + self.get_python_version() + "'.")
 
         try:
             request = BatchGetRowRequest()
@@ -866,7 +866,7 @@ class RowOpTest(APITestBase):
 
     def test_no_table_in_batch_ops(self):
         """BatchGetRow和BatchWriteRow没有包含任何行，期望返回OTSInvalidPK"""
-        table_name = 'table_test_no_item_in_batch_ops'
+        table_name = 'table_test_no_item_in_batch_ops' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'INTEGER')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(100, 100))
@@ -890,7 +890,7 @@ class RowOpTest(APITestBase):
 
     def test_get_range_when_direction_is_wrong_for_1_PK(self):
         """一个表有1个PK，测试方向为FORWARD/FORWARD，第一个begin(大于或等于)/(小于或等于)end，PK类型分别为STRING, INTEGER的情况，期望返回OTSInvalidPK"""
-        table_name_string = 'table_test_get_range_when_direction_string'
+        table_name_string = 'table_test_get_range_when_direction_string' + self.get_python_version()
         table_meta_string = TableMeta(table_name_string, [('PK0', 'STRING')])
         table_name_integer = 'table_test_get_range_when_direction_integer'
         table_meta_integer = TableMeta(table_name_integer, [('PK0', 'INTEGER')])
@@ -922,9 +922,10 @@ class RowOpTest(APITestBase):
 
     def test_all_the_ranges_for_2_PK(self):
         """一个表有2个PK, partition key 为 a < b < c < d，可以是STRING, INTEGER(分别测试)，每个partitionkey有2个行ax, ay, bx, by, cx, cy，其中x, y为第二个PK的值，分别为STRING, INTEGER, BOOlEAN。分别测试正反方向(测试反方向时把begine和end互换)的get_range: (a MIN, b MAX)，(b MAX, a MIN)（出错），(b MIN, a MAX)出错，(a MIN, a MAX), (a MAX, a MIN)（出错), (a MAX, b MIN), (a MAX, c MIN), (b x, a x)（出错）, (a x, a y), (a MIN, a y), (a x, a MAX), (a x, c x), (a x, c y), (a y, c x), (a x, a x)（出错），每个成功的操作检查数据返回符合期望，CU消耗符合期望"""
+        raw_table_name = 'T' + self.get_python_version()
         for first_pk_type in ('STRING', 'INTEGER'):
             for second_pk_type in ('STRING', 'INTEGER'):
-                table_name = 'T' + first_pk_type + second_pk_type
+                table_name = raw_table_name + first_pk_type + second_pk_type
                 table_meta = TableMeta(table_name, [('PK0', first_pk_type), ('PK1', second_pk_type)])
                 table_options = TableOptions()
                 self.client_test.create_table(table_meta, table_options, ReservedThroughput(CapacityUnit(100, 100)))
@@ -990,7 +991,7 @@ class RowOpTest(APITestBase):
 
     def test_4_PK_range(self):
         """一个表有4个PK，类型分别是STRING, STRING, INTEGER，测试range: ('A' 'A' 10 False, 'A' 'A' 10 True), ('A' 'A' 10 False, 'A' 'A' 11 True),  ('A' 'A' 10 False, 'A' 'A' 9 True)（出错）, ('A' 'A' 10 MAX, 'A' 'B' 10 MIN), ('A' MIN 10 False, 'B' MAX 2 True)，构造数据让每个区间都有值"""
-        table_name = 'table_test_4_PK_range'
+        table_name = 'table_test_4_PK_range' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'STRING'), ('PK2', 'INTEGER'), ('PK3', 'INTEGER')])
         table_options = TableOptions()
         pk_dict_list = [[('PK0','A'), ('PK1','A'), ('PK2',9), ('PK3',9)], 
@@ -1026,7 +1027,10 @@ class RowOpTest(APITestBase):
 
     def test_empty_range(self):
         """分别测试PK个数为1，2，3，4的4个表，range中包含的row个数为0的情况，期望返回为空，CU消耗为(1, 0)"""
-        table_name_list = ['table_test_empty_range_0', 'table_test_empty_range_1', 'table_test_empty_range_2', 'table_test_empty_range_3']
+        table_name_list = ['table_test_empty_range_0' + self.get_python_version(), 
+                           'table_test_empty_range_1' + self.get_python_version(), 
+                           'table_test_empty_range_2' + self.get_python_version(), 
+                           'table_test_empty_range_3' + self.get_python_version()]
         pk_schema0, pk_dict0_exclusive = self.get_primary_keys(1, 'STRING', 'PK', INF_MAX)
         pk_schema1, pk_dict1_exclusive = self.get_primary_keys(2, 'STRING', 'PK', INF_MAX)
         pk_schema2, pk_dict2_exclusive = self.get_primary_keys(3, 'STRING', 'PK', INF_MAX)
@@ -1051,7 +1055,7 @@ class RowOpTest(APITestBase):
             
     def test_get_range_limit_invalid(self):
         """测试get_range的limit为0或-1，期望返回错误OTSInvalidPK"""
-        table_name = 'table_test_get_range_limit_invalid'
+        table_name = 'table_test_get_range_limit_invalid' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(10, 10))
@@ -1125,7 +1129,7 @@ class RowOpTest(APITestBase):
     def test_one_delete_in_update(self):
         """当一行为空时，进行一个UpdateRow，并且仅包含一个Delete操作"""
 
-        table_name = 'T'
+        table_name = 'T' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))
@@ -1138,7 +1142,7 @@ class RowOpTest(APITestBase):
     def test_all_delete_in_update(self):
         """当一行为空时，进行一个UpdateRow，并且包含128个Delete操作"""
         
-        table_name = 'T'
+        table_name = 'T' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))
@@ -1159,7 +1163,7 @@ class RowOpTest(APITestBase):
     def test_one_delete_in_update_of_batch_write(self):
         """当一行为空时，进行一个BatchWriteRow的UpdateRow，并且仅包含一个Delete操作"""
         
-        table_name = 'T'
+        table_name = 'T' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         table_options = TableOptions()
@@ -1187,7 +1191,7 @@ class RowOpTest(APITestBase):
     def test_all_delete_in_update_of_batch_write(self):
         """当一行为空时，进行一个BatchWriteRow的UpdateRow，并且包含128个Delete操作"""
         
-        table_name = 'T'
+        table_name = 'T' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))

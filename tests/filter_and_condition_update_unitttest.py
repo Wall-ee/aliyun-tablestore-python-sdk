@@ -9,7 +9,7 @@ import time
 import logging
 
 class FilterAndConditionUpdateTest(APITestBase):
-    TABLE_NAME = "test_filter_and_condition_update"
+    TABLE_NAME = "test_filter_and_condition_update" + self.get_python_version()
 
     """ConditionUpdate"""
 
