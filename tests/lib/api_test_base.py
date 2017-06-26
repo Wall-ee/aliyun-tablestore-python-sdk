@@ -274,10 +274,10 @@ class APITestBase(TestCase):
         self.assert_TableOptions(response.table_options, expect_options)
 
     def wait_for_capacity_unit_update(self, table_name):
-        time.sleep(3)
+        time.sleep(5)
 
     def wait_for_partition_load(self, table_name, instance_name=""):
-        time.sleep(3)
+        time.sleep(5)
 
     def get_primary_keys(self, pk_cnt, pk_type, pk_name="PK", pk_value="x"):
         pk_schema = []

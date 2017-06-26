@@ -1,4 +1,4 @@
 *.pyc
 build
 dist
-ots2.egg-info
+tablestore.egg-info
