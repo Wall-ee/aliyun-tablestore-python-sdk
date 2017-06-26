@@ -5,7 +5,6 @@ from lib.api_test_base import APITestBase
 from tablestore import *
 import lib.restriction as restriction 
 import copy
-from collections import OrderedDict
 from tablestore.error import *
 import math
 import time
