@@ -1,37 +1,44 @@
 # -*- coding: utf8 -*-
 
-from ots2.error import *
+from tablestore.error import *
 
 __all__ = [
     'INF_MIN',
     'INF_MAX',
+    'PK_AUTO_INCR',
     'TableMeta',
+    'TableOptions',
     'CapacityUnit',
     'ReservedThroughput',
     'ReservedThroughputDetails',
     'ColumnType',
+    'ReturnType',
+    'Column',
     'Direction',
+    'UpdateType',
     'UpdateTableResponse',
     'DescribeTableResponse',
     'RowDataItem',
     'Condition',
+    'Row',
+    'RowItem',
     'PutRowItem',
     'UpdateRowItem',
     'DeleteRowItem',
-    'MultiTableInBatchGetRowItem',
+    'BatchGetRowRequest',
     'TableInBatchGetRowItem',
-    'MultiTableInBatchGetRowResult',
+    'BatchGetRowResponse',
     'BatchWriteRowType',
-    'MultiTableInBatchWriteRowItem',
+    'BatchWriteRowRequest',
     'TableInBatchWriteRowItem',
-    'MultiTableInBatchWriteRowResult',
+    'BatchWriteRowResponse',
     'BatchWriteRowResponseItem',
     'LogicalOperator',
     'ComparatorType',
     'ColumnConditionType',
     'ColumnCondition',
-    'CompositeCondition',
-    'RelationCondition',
+    'CompositeColumnCondition',
+    'SingleColumnCondition',
     'RowExistenceExpectation', 
 ]
 
@@ -43,6 +50,11 @@ class TableMeta(object):
         self.table_name = table_name
         self.schema_of_primary_key = schema_of_primary_key
 
+class TableOptions(object):
+    def __init__(self, time_to_live = -1, max_version = 1, max_time_deviation = 86400):
+        self.time_to_live = time_to_live
+        self.max_version = max_version
+        self.max_time_deviation = max_time_deviation
 
 class CapacityUnit(object):
 
@@ -59,11 +71,10 @@ class ReservedThroughput(object):
 
 class ReservedThroughputDetails(object):
     
-    def __init__(self, capacity_unit, last_increase_time, last_decrease_time, number_of_decreases_today):
+    def __init__(self, capacity_unit, last_increase_time, last_decrease_time):
         self.capacity_unit = capacity_unit
         self.last_increase_time = last_increase_time
         self.last_decrease_time = last_decrease_time
-        self.number_of_decreases_today = number_of_decreases_today
 
 class ColumnType(object):
     STRING = "STRING"
@@ -74,21 +85,49 @@ class ColumnType(object):
     INF_MIN = "INF_MIN"
     INF_MAX = "INF_MAX"
 
+class ReturnType(object):
+    RT_NONE = "RT_NONE"
+    RT_PK = "RT_PK"
+
+class Column(object):
+    def __init__(self, name, value = None, timestamp = None):
+        self.name = name
+        self.value = value
+        self.timestamp = timestamp
+
+    def set_timestamp(self, timestamp):
+        self.timestamp = timestamp
+
+    def get_name(self):
+        return self.name
+
+    def get_value(self):
+        return self.value
+
+    def get_timestamp(self):
+        return self.timestamp
 
 class Direction(object):
     FORWARD = "FORWARD"
     BACKWARD = "BACKWARD"
 
+class UpdateType(object):
+    PUT = "PUT"
+    DELETE = "DELETE"
+    DELETE_ALL = "DELETE_ALL"
+
 class UpdateTableResponse(object):
 
-    def __init__(self, reserved_throughput_details):
+    def __init__(self, reserved_throughput_details, table_options):
         self.reserved_throughput_details = reserved_throughput_details
+        self.table_options = table_options
 
 
 class DescribeTableResponse(object):
 
-    def __init__(self, table_meta, reserved_throughput_details):
+    def __init__(self, table_meta, table_options, reserved_throughput_details):
         self.table_meta = table_meta
+        self.table_options = table_options
         self.reserved_throughput_details = reserved_throughput_details
 
 
@@ -105,8 +144,9 @@ class RowDataItem(object):
         self.error_message = error_message
         self.table_name = table_name
         self.consumed = consumed
-        self.primary_key_columns = primary_key_columns
-        self.attribute_columns = attribute_columns
+        self.row = None
+        if primary_key_columns is not None or attribute_columns is not None:
+            self.row = Row(primary_key_columns, attribute_columns)
 
 class LogicalOperator(object):
     NOT = 0
@@ -153,20 +193,20 @@ class ComparatorType(object):
 
 
 class ColumnConditionType(object):
-    COMPOSITE_CONDITION = 0
-    RELATION_CONDITION = 1
+    COMPOSITE_COLUMN_CONDITION = 0
+    SINGLE_COLUMN_CONDITION = 1
 
 class ColumnCondition(object):
     pass    
 
-class CompositeCondition(ColumnCondition):
+class CompositeColumnCondition(ColumnCondition):
     
     def __init__(self, combinator):
         self.sub_conditions = []
         self.set_combinator(combinator)
 
     def get_type(self):
-        return ColumnConditionType.COMPOSITE_CONDITION
+        return ColumnConditionType.COMPOSITE_COLUMN_CONDITION
 
     def set_combinator(self, combinator):
         if combinator not in LogicalOperator.__values__:
@@ -190,20 +230,22 @@ class CompositeCondition(ColumnCondition):
     def clear_sub_condition(self):
         self.sub_conditions = []
 
-class RelationCondition(ColumnCondition):
+class SingleColumnCondition(ColumnCondition):
    
-    def __init__(self, column_name, column_value, comparator, pass_if_missing = True):
+    def __init__(self, column_name, column_value, comparator, pass_if_missing = True, latest_version_only = True):
         self.column_name = column_name
         self.column_value = column_value
 
         self.comparator = None
         self.pass_if_missing = None
+        self.latest_version_only = None
 
         self.set_comparator(comparator)
         self.set_pass_if_missing(pass_if_missing)
+        self.set_latest_version_only(latest_version_only)
 
     def get_type(self):
-        return ColumnConditionType.RELATION_CONDITION
+        return ColumnConditionType.SINGLE_COLUMN_CONDITION
 
     def set_pass_if_missing(self, pass_if_missing):
         """
@@ -224,6 +266,17 @@ class RelationCondition(ColumnCondition):
 
     def get_pass_if_missing(self):
         return self.pass_if_missing
+
+    def set_latest_version_only(self, latest_version_only):
+        if not isinstance(latest_version_only, bool):
+            raise OTSClientError(
+                "The input latest_version_only should be an instance of Bool, not %s"%
+                latest_version_only.__class__.__name__
+            )
+        self.latest_version_only = latest_version_only
+
+    def get_latest_version_only(self):
+        return self.latest_version_only
 
     def set_column_name(self, column_name):
         self.column_name = column_name
@@ -296,47 +349,60 @@ class Condition(object):
     def get_column_condition(self):
         self.column_condition
 
-class PutRowItem(object):
-
-    def __init__(self, condition, primary_key, attribute_columns):
-        self.condition = condition
+class Row(object):
+    def __init__(self, primary_key, attribute_columns = None):
         self.primary_key = primary_key
         self.attribute_columns = attribute_columns
 
+class RowItem(object):
 
-class UpdateRowItem(object):
-    
-    def __init__(self, condition, primary_key, update_of_attribute_columns):
+    def __init__(self, row_type, row, condition, return_type = None):
+        self.type = row_type
         self.condition = condition
-        self.primary_key = primary_key
-        self.update_of_attribute_columns = update_of_attribute_columns
+        self.row = row
+        self.return_type = return_type
 
+class PutRowItem(RowItem):
 
-class DeleteRowItem(object):
-    
-    def __init__(self, condition, primary_key):
-        self.condition = condition
-        self.primary_key = primary_key
+    def __init__(self, row, condition, return_type = None):
+        super(PutRowItem, self).__init__(BatchWriteRowType.PUT, row, condition, return_type)
+
+class UpdateRowItem(RowItem):
+
+    def __init__(self, row, condition, return_type = None):
+        super(UpdateRowItem, self).__init__(BatchWriteRowType.UPDATE, row, condition, return_type)
+
+class DeleteRowItem(RowItem):
+
+    def __init__(self, row, condition, return_type = None):
+        super(DeleteRowItem, self).__init__(BatchWriteRowType.DELETE, row, condition, return_type)
 
 
 class TableInBatchGetRowItem(object):
 
-    def __init__(self, table_name, primary_keys, columns_to_get=None, column_filter=None):
+    def __init__(self, table_name, primary_keys, columns_to_get=None, 
+                 column_filter=None, max_version=None, time_range=None,
+                 start_column=None, end_column=None, token=None):
         self.table_name = table_name
         self.primary_keys = primary_keys
         self.columns_to_get = columns_to_get
         self.column_filter = column_filter
+        self.max_version = max_version
+        self.time_range = time_range
+        self.start_column = start_column
+        self.end_column = end_column
+        self.token = token
 
 
-class MultiTableInBatchGetRowItem(object):
+class BatchGetRowRequest(object):
 
     def __init__(self):
         self.items = {}
 
     def add(self, table_item):
         """
-        说明：添加ots2.metadata.TableInBatchGetRowItem对象
-        注意：对象内部存储ots2.metadata.TableInBatchGetRowItem对象采用‘字典’的形式，Key是表
+        说明：添加tablestore.metadata.TableInBatchGetRowItem对象
+        注意：对象内部存储tablestore.metadata.TableInBatchGetRowItem对象采用‘字典’的形式，Key是表
               的名字，因此如果插入同表名的对象，那么之前的对象将被覆盖。
         """
         if not isinstance(table_item, TableInBatchGetRowItem):
@@ -347,7 +413,7 @@ class MultiTableInBatchGetRowItem(object):
 
         self.items[table_item.table_name] = table_item
 
-class MultiTableInBatchGetRowResult(object):
+class BatchGetRowResponse(object):
 
     def __init__(self, response):
         self.items = {}
@@ -394,23 +460,21 @@ class BatchWriteRowType(object):
 
 
 class TableInBatchWriteRowItem(object):
-    
-    def __init__(self, table_name, put=None, update=None, delete=None):
+
+    def __init__(self, table_name, row_items):
         self.table_name = table_name
-        self.put = put
-        self.update = update
-        self.delete = delete
+        self.row_items = row_items
+        
 
-
-class MultiTableInBatchWriteRowItem(object):
+class BatchWriteRowRequest(object):
 
     def __init__(self):
         self.items = {}
 
     def add(self, table_item):
         """
-        说明：添加ots2.metadata.TableInBatchWriteRowItem对象
-        注意：对象内部存储ots2.metadata.TableInBatchWriteRowItem对象采用‘字典’的形式，Key是表
+        说明：添加tablestore.metadata.TableInBatchWriteRowItem对象
+        注意：对象内部存储tablestore.metadata.TableInBatchWriteRowItem对象采用‘字典’的形式，Key是表
               的名字，因此如果插入同表名的对象，那么之前的对象将被覆盖。
         """
         if not isinstance(table_item, TableInBatchWriteRowItem):
@@ -421,23 +485,29 @@ class MultiTableInBatchWriteRowItem(object):
 
         self.items[table_item.table_name] = table_item
 
-class MultiTableInBatchWriteRowResult(object):
+class BatchWriteRowResponse(object):
 
-    def __init__(self, response):
+    def __init__(self, request, response):
         self.table_of_put = {}
         self.table_of_update = {}
         self.table_of_delete = {}
-
-        for table in response:
-            for type, rows in table.items():
-                if len(rows) > 0:
-                    row = rows[0]
-                    if type == BatchWriteRowType.PUT:
-                        self.table_of_put[row.table_name] = rows
-                    elif type == BatchWriteRowType.UPDATE:
-                        self.table_of_update[row.table_name] = rows
-                    else:
-                        self.table_of_delete[row.table_name] = rows
+        
+        for table_name in response.keys():
+            put_list = []
+            update_list = []
+            delete_list = []
+            for index in range(len(response[table_name])):
+                row_item = response[table_name][index]
+                request_row = request.items[table_name].row_items[index]
+                if request_row.type == BatchWriteRowType.PUT:
+                    put_list.append(row_item)
+                elif request_row.type == BatchWriteRowType.UPDATE:
+                    update_list.append(row_item)
+                else:
+                    delete_list.append(row_item)
+            self.table_of_put[table_name] = put_list
+            self.table_of_update[table_name] = update_list
+            self.table_of_delete[table_name] = delete_list
 
     def get_put(self):
         succ = []
@@ -522,12 +592,12 @@ class MultiTableInBatchWriteRowResult(object):
 
 class BatchWriteRowResponseItem(object):
 
-    def __init__(self, is_ok, error_code, error_message, table_name, consumed):
+    def __init__(self, is_ok, error_code, error_message, consumed, primary_key):
         self.is_ok = is_ok
         self.error_code = error_code
         self.error_message = error_message
-        self.table_name = table_name
         self.consumed = consumed
+        self.row = Row(primary_key)
 
 
 class INF_MIN(object):
@@ -537,5 +607,9 @@ class INF_MIN(object):
 
 class INF_MAX(object):
     # for get_range
+    pass
+
+class PK_AUTO_INCR(object):
+    # for put_row
     pass
 

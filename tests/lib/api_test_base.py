@@ -3,9 +3,9 @@ import subprocess
 
 import test_config
 from unittest import TestCase
-from ots2 import * 
-from ots2.error import * 
-from ots2.retry import *
+from tablestore import * 
+from tablestore.error import * 
+from tablestore.retry import *
 import types
 import math
 import time
@@ -18,16 +18,16 @@ import os
 import inspect
 import logging
 
-class OTS2APITestBase(TestCase):
+class APITestBase(TestCase):
 
     def __init__(self, methodName=None):
         TestCase.__init__(self, methodName=methodName)
         self.start_time = 0
 
-        self.logger = logging.getLogger('OTS2APITestBase')  
+        self.logger = logging.getLogger('APITestBase')  
         self.logger.setLevel(logging.INFO) 
           
-        fh = logging.FileHandler('ots_sdk_test.log')  
+        fh = logging.FileHandler('tablestore_sdk_test.log')  
         fh.setLevel(logging.INFO)  
           
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  
@@ -41,7 +41,7 @@ class OTS2APITestBase(TestCase):
             test_config.OTS_ID,
             test_config.OTS_SECRET,
             test_config.OTS_INSTANCE,
-            logger_name = 'OTS2APITestBase',
+            logger_name = 'APITestBase',
             retry_policy=NoRetryPolicy(),
         )
         
@@ -123,38 +123,39 @@ class OTS2APITestBase(TestCase):
             read = read - 1
             write = write - 1
             no_check_flag = 1
-        columns = {}
+        columns = []
         column_value_size = 4096
-        all_pk_length = self.get_row_size(pk_dict_exist, {})
+        all_pk_length = self.get_row_size(pk_dict_exist, [])
         #write
         for i in range(write):
             if i is not 0:
-                columns['X' * i] = 'X' * (column_value_size - i)
+                columns.append(('X' * i, 'X' * (column_value_size - i)))
             else:
-                columns['col0'] = 'X' * (column_value_size - all_pk_length - 10)
+                columns.append(('col0', 'X' * (column_value_size - all_pk_length - 10)))
         if write is not 0:
-            consumed_update = self.client_test.update_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_exist, {'put':columns})
+            row = Row(pk_dict_exist, {'put':columns})
+            consumed_update,return_row = self.client_test.update_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
             expect_consumed = CapacityUnit(0, self.sum_CU_from_row(pk_dict_exist, columns))
             self.assert_consumed(consumed_update, expect_consumed)
             self.assert_equal(write, self.sum_CU_from_row(pk_dict_exist, columns))
         #consume(0, 1)
         if 1 == no_check_flag: 
             try:
-                consumed_update = self.client_test.delete_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_not_exist)
+                consumed_update,return_row = self.client_test.delete_row(table_name, Row(pk_dict_not_exist), Condition(RowExistenceExpectation.IGNORE))
             except OTSServiceError as e:
                 self.assert_false()
         
         #read
         while read >= write and write != 0:
             read = read - write
-            consumed_read, primary_keys, columns_get_row = self.client_test.get_row(table_name, pk_dict_exist)
+            consumed_read, return_row, token  = self.client_test.get_row(table_name, pk_dict_exist, max_version = 1)
             expect_consumed = CapacityUnit(self.sum_CU_from_row(pk_dict_exist, columns), 0)
             self.assert_consumed(consumed_read, expect_consumed)
-            self.assert_equal(primary_keys, pk_dict_exist)
+            self.assert_equal(return_row.primary_key, pk_dict_exist)
         for i in range(read + no_check_flag):
-            consumed_read, primary_keys, columns_get_row = self.client_test.get_row(table_name, pk_dict_not_exist)
+            consumed_read, return_row, token= self.client_test.get_row(table_name, pk_dict_not_exist, max_version = 1)
             self.assert_consumed(consumed_read, CapacityUnit(1, 0))
-            self.assert_equal(primary_keys, {})
+            self.assert_equal(return_row, None)
 
     def check_CU_by_consuming(self, table_name, pk_dict_exist, pk_dict_not_exist, 
                               capacity_unit):  
@@ -164,7 +165,7 @@ class OTS2APITestBase(TestCase):
         if capacity_unit.write <= 1 and capacity_unit.read <= 1:
             #consume(0, 1)
             try:
-                consumed_update = self.client_test.delete_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_not_exist)
+                consumed_update,pk,attr = self.client_test.delete_row(table_name, Condition(RowExistenceExpectation.IGNORE), pk_dict_not_exist)
                 end_time = time.time()
                 if end_time - begin_time < 1:
                     self.assert_false()
@@ -172,7 +173,7 @@ class OTS2APITestBase(TestCase):
                 self.assert_error(e, 403, "OTSNotEnoughCapacityUnit", "Remaining capacity unit for write is not enough.")
             #consume(1, 0)
             try:
-                consumed_read, primary_keys, columns_get_row = self.client_test.get_row(table_name, pk_dict_not_exist)
+                consumed_read, pk, attr, token = self.client_test.get_row(table_name, pk_dict_not_exist, max_version = 1)
                 end_time = time.time()
                 if end_time - begin_time < 1:
                     self.assert_false()
@@ -185,6 +186,18 @@ class OTS2APITestBase(TestCase):
         else:
             self.assert_equal(consumed.read, expect_consumed.read)
             self.assert_equal(consumed.write, expect_consumed.write)
+
+    def assert_columns(self, columns, expect_columns):
+        if columns is None:
+            columns = []
+        if expect_columns is None:
+            expect_columns = []
+
+        self.assert_equal(len(columns), len(expect_columns))
+        for index in range(len(columns)):
+            self.assert_equal(columns[index][0], expect_columns[index][0])
+            self.assert_equal(columns[index][1], expect_columns[index][1])
+
  
     def assert_RowDataItem_equal(self, response, expect_response):
         self.assert_equal(len(response), len(expect_response))
@@ -206,6 +219,9 @@ class OTS2APITestBase(TestCase):
                     self.assert_consumed(response[i][j].consumed, expect_response[i][j].consumed)
 
     def assert_BatchWriteRowResponseItem(self, response, expect_response):
+        
+
+
         self.assert_equal(len(response), len(expect_response))
         item_list = ['put', 'update', 'delete']
         for i in range(len(response)):
@@ -247,52 +263,57 @@ class OTS2APITestBase(TestCase):
         self.assert_equal(response.table_name, expect_response.table_name)
         self.assert_equal(response.schema_of_primary_key, expect_response.schema_of_primary_key)
 
-    def assert_DescribeTableResponse(self, response, expect_capacity_unit, expect_table_meta):
+    def assert_TableOptions(self, response, expect_response):
+        self.assert_equal(response.time_to_live, expect_response.time_to_live)
+        self.assert_equal(response.max_version, expect_response.max_version)
+        self.assert_equal(response.max_time_deviation, expect_response.max_time_deviation)
+
+    def assert_DescribeTableResponse(self, response, expect_capacity_unit, expect_table_meta, expect_options):
         self.assert_consumed(response.reserved_throughput_details.capacity_unit, expect_capacity_unit)
         self.assert_TableMeta(response.table_meta, expect_table_meta)
+        self.assert_TableOptions(response.table_options, expect_options)
 
     def wait_for_capacity_unit_update(self, table_name):
-        time.sleep(2)
+        time.sleep(5)
 
     def wait_for_partition_load(self, table_name, instance_name=""):
-        time.sleep(2)
+        time.sleep(5)
 
     def get_primary_keys(self, pk_cnt, pk_type, pk_name="PK", pk_value="x"):
         pk_schema = []
-        pk = {}
+        pk = []
         for i in range(pk_cnt):
             pk_schema.append(("%s%d" % (pk_name, i), pk_type))
-            pk[("%s%d" % (pk_name, i))] = pk_value
+            pk.append(("%s%d" % (pk_name, i), pk_value))
 
         return pk_schema, pk
 
     def get_row_size(self, pk_dict, column_dict):
         sum = 0
-        for k in pk_dict.keys():
-            sum += len(k)
-        for v in pk_dict.values():
-            if isinstance(v, bool):
+        for v in pk_dict:
+            sum += len(v[0])
+            if isinstance(v[1], bool):
                 sum += 1
-            elif isinstance(v, (int, long)):
+            elif isinstance(v[1], (int, long)):
                 sum += 8
-            elif isinstance(v, (types.StringType, bytearray, unicode)):
-                sum += len(v)
+            elif isinstance(v[1], (types.StringType, bytearray, unicode)):
+                sum += len(v[1])
             else:
                 raise Exception("wrong type is set in primary value")
 
-        for k in column_dict.keys():
-            sum += len(k)
-        for v in column_dict.values():
-            if v == None:
+        for v in column_dict:
+            sum += len(v[0])
+            if len(v) == 1:
                 pass
-            elif isinstance(v, bool):
+            elif isinstance(v[1], bool):
                 sum += 1
-            elif isinstance(v, (int, long, float)):
+            elif isinstance(v[1], (int, long, float)):
                 sum += 8
-            elif isinstance(v, (types.StringType, bytearray, unicode)):
-                sum += len(v)
+            elif isinstance(v[1], (types.StringType, bytearray, unicode)):
+                sum += len(v[1])
             else:
                 raise Exception("wrong type is set in column value") 
+            #sum += 4
         return sum
 
     def sum_CU_from_row(self, pk_dict, column_dict):
@@ -302,27 +323,28 @@ class OTS2APITestBase(TestCase):
     def _create_table_with_4_pk(self, table_name):
         table_meta = TableMeta(table_name, [('PK0', 'STRING'), ('PK1', 'STRING'), 
             ('PK2', 'STRING'), ('PK3', 'STRING')])                
+        table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit, 
             restriction.MaxReadWriteCapacityUnit
         ))
-        self.client_test.create_table(table_meta, reserved_throughput)
+        self.client_test.create_table(table_meta, table_options, reserved_throughput)
         self.wait_for_partition_load(table_name)
 
     def _create_maxsize_row(self, pk_value = 'V'):
         """创建table+生成size恰好为max的pk dict和column dict"""
-        pks = {}
+        pks = []
         for i in range(0, 4):
             pk = 'PK' + str(i)
             value = pk_value * (restriction.MaxPKStringValueLength - len(pk))
-            pks[pk] = value
+            pks.append((pk, value))
 
         column_size = restriction.MaxPKStringValueLength * 4
         column_n = restriction.MaxColumnDataSizeForRow / column_size - 1
-        columns = {}
+        columns = []
         for i in range(0, column_n):
             key = 'C' + str(i)
             value = 'V' * (column_size - len(key))
-            columns[key] = value
+            columns.append((key,  value))
         return pks, columns
 

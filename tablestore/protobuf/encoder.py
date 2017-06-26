@@ -2,41 +2,43 @@
 
 import google.protobuf.text_format as text_format
 
-from ots2.error import *
-from ots2.metadata import *
-import ots2.protobuf.ots_protocol_2_pb2 as pb2
+from tablestore.error import *
+from tablestore.metadata import *
+from tablestore.plainbuffer.plain_buffer_builder import *
+import tablestore.protobuf.table_store_pb2 as pb2
+import tablestore.protobuf.table_store_filter_pb2 as filter_pb2
 
 INT32_MAX = 2147483647
 INT32_MIN = -2147483648
 
-COLUMN_TYPE_MAP = {
-    ColumnType.INF_MIN   : pb2.INF_MIN,
-    ColumnType.INF_MAX   : pb2.INF_MAX,
-    ColumnType.INTEGER   : pb2.INTEGER,
-    ColumnType.STRING    : pb2.STRING,
-    ColumnType.BOOLEAN   : pb2.BOOLEAN,
-    ColumnType.DOUBLE    : pb2.DOUBLE,
-    ColumnType.BINARY    : pb2.BINARY,
+PRIMARY_KEY_TYPE_MAP = {
+    'INTEGER'   : pb2.INTEGER,
+    'STRING'    : pb2.STRING,
+    'BINARY'    : pb2.BINARY,
+}
+
+PRIMARY_KEY_OPTION_MAP = {
+    PK_AUTO_INCR : pb2.AUTO_INCREMENT,
 }
 
 LOGICAL_OPERATOR_MAP = {
-    LogicalOperator.NOT     : pb2.LO_NOT,
-    LogicalOperator.AND     : pb2.LO_AND,
-    LogicalOperator.OR      : pb2.LO_OR,
+    LogicalOperator.NOT     : filter_pb2.LO_NOT,
+    LogicalOperator.AND     : filter_pb2.LO_AND,
+    LogicalOperator.OR      : filter_pb2.LO_OR,
 }
 
 COMPARATOR_TYPE_MAP = {
-    ComparatorType.EQUAL          : pb2.CT_EQUAL,
-    ComparatorType.NOT_EQUAL      : pb2.CT_NOT_EQUAL,
-    ComparatorType.GREATER_THAN   : pb2.CT_GREATER_THAN,
-    ComparatorType.GREATER_EQUAL  : pb2.CT_GREATER_EQUAL,
-    ComparatorType.LESS_THAN      : pb2.CT_LESS_THAN,
-    ComparatorType.LESS_EQUAL     : pb2.CT_LESS_EQUAL,
+    ComparatorType.EQUAL          : filter_pb2.CT_EQUAL,
+    ComparatorType.NOT_EQUAL      : filter_pb2.CT_NOT_EQUAL,
+    ComparatorType.GREATER_THAN   : filter_pb2.CT_GREATER_THAN,
+    ComparatorType.GREATER_EQUAL  : filter_pb2.CT_GREATER_EQUAL,
+    ComparatorType.LESS_THAN      : filter_pb2.CT_LESS_THAN,
+    ComparatorType.LESS_EQUAL     : filter_pb2.CT_LESS_EQUAL,
 }
 
 COLUMN_CONDITION_TYPE_MAP = {
-    ColumnConditionType.COMPOSITE_CONDITION : pb2.CCT_COMPOSITE,
-    ColumnConditionType.RELATION_CONDITION  : pb2.CCT_RELATION,
+    ColumnConditionType.COMPOSITE_COLUMN_CONDITION : filter_pb2.FT_COMPOSITE_COLUMN_VALUE,
+    ColumnConditionType.SINGLE_COLUMN_CONDITION  : filter_pb2.FT_SINGLE_COLUMN_VALUE,
 }
 
 DIRECTION_MAP = {
@@ -50,13 +52,7 @@ ROW_EXISTENCE_EXPECTATION_MAP = {
     RowExistenceExpectation.EXPECT_NOT_EXIST : pb2.EXPECT_NOT_EXIST ,
 }
 
-BATCH_WRITE_ROW_TYPE_MAP = {
-    BatchWriteRowType.PUT    : PutRowItem, 
-    BatchWriteRowType.UPDATE : UpdateRowItem, 
-    BatchWriteRowType.DELETE : DeleteRowItem
-}
-
-class OTSProtoBufferEncoder:
+class OTSProtoBufferEncoder(object):
 
     def __init__(self, encoding):
         self.encoding = encoding
@@ -142,9 +138,24 @@ class OTSProtoBufferEncoder:
                 % value.__class__.__name__
             )
 
+    def _get_column_option(self, option):
+        global PRIMARY_KEY_OPTION_MAP
+        enum_map = PRIMARY_KEY_OPTION_MAP
+
+        proto_option = enum_map.get(option)
+
+        if proto_option != None:
+            return proto_option
+        else:
+            raise OTSClientError(
+                "primary_key_option should be one of [%s], not %s" % (
+                    ", ".join(enum_map.keys()), str(option)
+                )
+            )
+
     def _get_column_type(self, type_str):
-        global COLUMN_TYPE_MAP
-        enum_map = COLUMN_TYPE_MAP
+        global PRIMARY_KEY_TYPE_MAP
+        enum_map = PRIMARY_KEY_TYPE_MAP
 
         proto_type = enum_map.get(type_str)
 
@@ -152,13 +163,13 @@ class OTSProtoBufferEncoder:
             return proto_type
         else:
             raise OTSClientError(
-                "column_type should be one of [%s], not %s" % (
+                "primary_key_type should be one of [%s], not %s" % (
                     ", ".join(enum_map.keys()), str(type_str)
                 )
             )
 
     def _make_composite_condition(self, condition):
-        proto = pb2.CompositeCondition()
+        proto = filter_pb2.CompositeColumnValueFilter()
 
         # combinator
         global LOGICAL_OPERATOR_MAP
@@ -173,12 +184,12 @@ class OTSProtoBufferEncoder:
             )
 
         for sub in condition.sub_conditions:
-            self._make_column_condition(proto.sub_conditions.add(), sub)
+            self._make_column_condition(proto.sub_filters.add(), sub)
 
         return proto.SerializeToString()
 
     def _make_relation_condition(self, condition):
-        proto = pb2.RelationCondition()
+        proto = filter_pb2.SingleColumnValueFilter()
 
         # comparator
         global COMPARATOR_TYPE_MAP
@@ -193,8 +204,10 @@ class OTSProtoBufferEncoder:
             )
 
         proto.column_name = self._get_unicode(condition.column_name)
-        self._make_column_value(proto.column_value, condition.column_value)
-        proto.pass_if_missing = condition.pass_if_missing 
+        #self._make_column_value(proto.column_value, condition.column_value)
+        proto.column_value = str(PlainBufferBuilder.serialize_column_value(condition.column_value))
+        proto.filter_if_missing = not condition.pass_if_missing 
+        proto.latest_version_only = condition.latest_version_only
 
         return proto.SerializeToString()
 
@@ -221,13 +234,13 @@ class OTSProtoBufferEncoder:
             )
 
         # condition
-        if isinstance(column_condition, CompositeCondition):
-            proto.condition = self._make_composite_condition(column_condition)
-        elif isinstance(column_condition, RelationCondition):
-            proto.condition = self._make_relation_condition(column_condition)
+        if isinstance(column_condition, CompositeColumnCondition):
+            proto.filter = self._make_composite_condition(column_condition)
+        elif isinstance(column_condition, SingleColumnCondition):
+            proto.filter = self._make_relation_condition(column_condition)
         else:
             raise OTSClientError(
-                "expect CompositeCondition, RelationCondition but not %s"
+                "expect CompositeColumnCondition, SingleColumnCondition but not %s"
                 % column_condition.__class__.__name__
             )
 
@@ -252,7 +265,10 @@ class OTSProtoBufferEncoder:
                 )
             )
 
-        self._make_column_condition(proto.column_condition, condition.column_condition)
+        if condition.column_condition is not None:
+            pb_filter = filter_pb2.Filter()
+            self._make_column_condition(pb_filter, condition.column_condition)
+            proto.column_condition = pb_filter.SerializeToString()
 
     def _get_direction(self, direction_str):
         global DIRECTION_MAP
@@ -269,9 +285,10 @@ class OTSProtoBufferEncoder:
             )
 
     def _make_column_schema(self, proto, schema_tuple):
-        (schema_name, schema_type) = schema_tuple
-        proto.name = self._get_unicode(schema_name)
-        proto.type = self._get_column_type(schema_type)
+        proto.name = self._get_unicode(schema_tuple[0])
+        proto.type = self._get_column_type(schema_tuple[1])
+        if len(schema_tuple) == 3:
+            proto.option = self._get_column_option(schema_tuple[2])
 
     def _make_schemas_with_list(self, proto, schema_list):
         for schema_tuple in schema_list:
@@ -344,6 +361,17 @@ class OTSProtoBufferEncoder:
             table_meta.schema_of_primary_key,
         )
 
+    def _make_table_options(self, proto, table_options):
+        if not isinstance(table_options, TableOptions):
+            raise OTSClientError(
+                "table_option should be an instance of TableOptions, not %s" 
+                % table_options.__class__.__name__
+            )
+
+        proto.time_to_live = table_options.time_to_live
+        proto.max_versions = table_options.max_version
+        proto.deviation_cell_version_in_sec = table_options.max_time_deviation
+
     def _make_capacity_unit(self, proto, capacity_unit):
 
         if not isinstance(capacity_unit, CapacityUnit):
@@ -391,139 +419,114 @@ class OTSProtoBufferEncoder:
         
         self._make_update_capacity_unit(proto.capacity_unit, reserved_throughput.capacity_unit)
 
-    def _make_batch_get_row_deprecated(self, proto, batch_list):
-        for (table_name, row_list, columns_to_get) in batch_list:
-            table_item = proto.tables.add()
-            table_item.table_name = self._get_unicode(table_name)
-            self._make_repeated_column_names(table_item.columns_to_get, columns_to_get)
-            for primary_key in row_list:
-                if isinstance(primary_key, dict):
-                    row = table_item.rows.add()
-                    self._make_columns_with_dict(row.primary_key, primary_key)
-                else:
-                    raise OTSClientError(
-                        "The row should be a dict, not %s" 
-                        % row_item.__class__.__name__
-                    ) 
-
     def _make_batch_get_row_internal(self, proto, request):
         for table_name, item in request.items.items():
             table_item = proto.tables.add()
             table_item.table_name = self._get_unicode(item.table_name)
             self._make_repeated_column_names(table_item.columns_to_get, item.columns_to_get)
-            self._make_column_condition(table_item.filter, item.column_filter)
 
-            for primary_key in item.primary_keys:
-                if isinstance(primary_key, dict):
-                    row = table_item.rows.add()
-                    self._make_columns_with_dict(row.primary_key, primary_key)
-                else:
-                    raise OTSClientError(
-                        "The row should be a dict, not %s" 
-                        % row_item.__class__.__name__
-                    )
+            if item.column_filter is not None:
+                pb_filter = filter_pb2.Filter()
+                self._make_column_condition(pb_filter, item.column_filter)
+                table_item.filter = pb_filter.SerializeToString()
 
+            for pk in item.primary_keys:
+                table_item.primary_key.append(str(PlainBufferBuilder.serialize_primary_key(pk)))
+            if item.token is not None:
+                for token in item.token:
+                    table_item.token.append(token)
+
+            if item.max_version is not None:
+                table_item.max_versions = item.max_version
+            if item.time_range is not None:
+                if isinstance(item.time_range, tuple):
+                    table_item.time_range.start_time = item.time_range[0]
+                    table_item.time_range.end_time = item.time_range[1]
+                elif isinstance(item.time_range, int) or isinstance(item.time_range, long):
+                    table_item.time_range.specific_time = item.time_range
+
+            if item.start_column is not None:
+                table_item.start_column = item.start_column
+            if item.end_column is not None:
+                table_item.end_column = item.end_column
 
     def _make_batch_get_row(self, proto, request):
-        if isinstance(request, list):
-            self._make_batch_get_row_deprecated(proto, request)
-        elif isinstance(request, MultiTableInBatchGetRowItem):
+        if isinstance(request, BatchGetRowRequest):
             self._make_batch_get_row_internal(proto, request) 
         else:
-            raise OTSClientError("The request should be a instance of MultiTableInBatchGetRowItem, not %d"%(len(request.__class__.__name__)))
+            raise OTSClientError("The request should be a instance of BatchGetRowRequest, not %d"%(len(request.__class__.__name__)))
 
     def _make_put_row_item(self, proto, put_row_item):
-        self._make_condition(proto.condition, put_row_item.condition)
-        self._make_columns_with_dict(proto.primary_key, put_row_item.primary_key)
-        self._make_columns_with_dict(proto.attribute_columns, put_row_item.attribute_columns)
+        condition = put_row_item.condition
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
+        self._make_condition(proto.condition, condition)
+        if put_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
+
+        proto.row_change = str(PlainBufferBuilder.serialize_for_put_row(
+                put_row_item.row.primary_key, put_row_item.row.attribute_columns))
+        proto.type = pb2.PUT
+        return proto
 
     def _make_update_row_item(self, proto, update_row_item):
-        self._make_condition(proto.condition, update_row_item.condition)
-        self._make_columns_with_dict(proto.primary_key, update_row_item.primary_key)
-        self._make_update_of_attribute_columns_with_dict(proto.attribute_columns, update_row_item.update_of_attribute_columns)
+        condition = update_row_item.condition
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
+        self._make_condition(proto.condition, condition)
+
+        if update_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
+
+        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(
+                update_row_item.row.primary_key, update_row_item.row.attribute_columns))
+        proto.type = pb2.UPDATE
+        return proto
 
     def _make_delete_row_item(self, proto, delete_row_item):
-        self._make_condition(proto.condition, delete_row_item.condition)
-        self._make_columns_with_dict(proto.primary_key, delete_row_item.primary_key)
+        condition = delete_row_item.condition
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
+        self._make_condition(proto.condition, condition)
 
-    def _make_batch_write_row_deprecated(self, proto, batch_list):
-        global BATCH_WRITE_ROW_TYPE_MAP
-        enum_map = BATCH_WRITE_ROW_TYPE_MAP
+        if delete_row_item.return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
 
-        for table_dict in batch_list:
-            if not isinstance(table_dict, dict):
-                raise OTSClientError(
-                    "every item in batch_list should be a dict, not %s" 
-                    % table_dict.__class__.__name__
-                )
+        proto.row_change = str(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.row.primary_key))
+        proto.type = pb2.DELETE
+        return proto
 
-            table_name = table_dict.get('table_name')
-            table_item = proto.tables.add()
-            table_item.table_name = self._get_unicode(table_name)
-
-            for key,row_list in table_dict.iteritems():
-                if key is 'table_name':
-                    continue
-                if not key in enum_map:
-                    raise OTSClientError(
-                        "operation type must be one of [%s], not %s" % (
-                        ", ".join(enum_map.keys()), str(key))
-                    )
-                if not isinstance(row_list, list):
-                    raise OTSClientError(
-                        "rows to write should be a list, not %s" 
-                        % row_list.__class__.__name__
-                    )
-                for row_item in row_list:
-                    if not isinstance(row_item, enum_map[key]):
-                        raise OTSClientError(
-                            "row should be an instance of %s, not %s" % (
-                            enum_map[key].__name__, row_item.__class__.__name__)
-                        )
-                    if key is 'put':
-                        row = table_item.put_rows.add()
-                        self._make_put_row_item(row, row_item)
-                    elif key is 'update':
-                        row = table_item.update_rows.add()
-                        self._make_update_row_item(row, row_item)
-                    elif key is 'delete':
-                        row = table_item.delete_rows.add()
-                        self._make_delete_row_item(row, row_item)
- 
     def _make_batch_write_row_internal(self, proto, request):
         for table_name, item in request.items.items():
-            table_item = proto.tables.add()  
+            table_item = proto.tables.add()
             table_item.table_name = self._get_unicode(item.table_name)
 
-            if item.put != None:
-                for row_item in item.put:
-                    row = table_item.put_rows.add()
+            for row_item in item.row_items:
+                if row_item.type == BatchWriteRowType.PUT:
+                    row = table_item.rows.add()
                     self._make_put_row_item(row, row_item)
 
-            if item.update != None:
-                for row_item in item.update:
-                    row = table_item.update_rows.add()
+                if row_item.type == BatchWriteRowType.UPDATE:
+                    row = table_item.rows.add()
                     self._make_update_row_item(row, row_item)
 
-            if item.delete != None:
-                for row_item in item.delete:
-                    row = table_item.delete_rows.add()
+                if row_item.type == BatchWriteRowType.DELETE:
+                    row = table_item.rows.add()
                     self._make_delete_row_item(row, row_item)
 
 
     def _make_batch_write_row(self, proto, request):
-        if isinstance(request, list):
-            self._make_batch_write_row_deprecated(proto, request)
-        elif isinstance(request, MultiTableInBatchWriteRowItem):
+        if isinstance(request, BatchWriteRowRequest):
             self._make_batch_write_row_internal(proto, request) 
         else:
             raise OTSClientError("The request should be a instance of MultiTableInBatchWriteRowItem, not %d"%(len(request.__class__.__name__)))
     
              
-    def _encode_create_table(self, table_meta, reserved_throughput):
+    def _encode_create_table(self, table_meta, table_options, reserved_throughput):
         proto = pb2.CreateTableRequest()
         self._make_table_meta(proto.table_meta, table_meta)
         self._make_reserved_throughput(proto.reserved_throughput, reserved_throughput)
+        self._make_table_options(proto.table_options, table_options)
         return proto
 
     def _encode_delete_table(self, table_name):
@@ -535,10 +538,11 @@ class OTSProtoBufferEncoder:
         proto = pb2.ListTableRequest()
         return proto
 
-    def _encode_update_table(self, table_name, reserved_throughput):
+    def _encode_update_table(self, table_name, table_options, reserved_throughput):
         proto = pb2.UpdateTableRequest()
         proto.table_name = self._get_unicode(table_name)
         self._make_update_reserved_throughput(proto.reserved_throughput, reserved_throughput)
+        self._make_table_options(proto.table_options, table_options)
         return proto
 
     def _encode_describe_table(self, table_name):
@@ -546,35 +550,72 @@ class OTSProtoBufferEncoder:
         proto.table_name = self._get_unicode(table_name)
         return proto
 
-    def _encode_get_row(self, table_name, primary_key, columns_to_get, column_filter):
+    def _encode_get_row(self, table_name, primary_key, columns_to_get, column_filter, 
+                        max_version, time_range, start_column, end_column, token):
         proto = pb2.GetRowRequest()
         proto.table_name = self._get_unicode(table_name)
-        self._make_columns_with_dict(proto.primary_key, primary_key)
         self._make_repeated_column_names(proto.columns_to_get, columns_to_get)
-        self._make_column_condition(proto.filter, column_filter)
+
+        if column_filter is not None:
+            pb_filter = filter_pb2.Filter()
+            self._make_column_condition(pb_filter, column_filter)
+            proto.filter = pb_filter.SerializeToString()
+
+        proto.primary_key = str(PlainBufferBuilder.serialize_primary_key(primary_key))
+        if max_version is not None:
+            proto.max_versions = max_version
+        if time_range is not None:
+            if isinstance(time_range, tuple):
+                proto.time_range.start_time = time_range[0]
+                proto.time_range.end_time = time_range[1]
+            elif isinstance(time_range, int) or isinstance(time_range, long):
+                proto.time_range.specific_time = time_range
+
+        if start_column is not None:
+            proto.start_column = start_column
+        if end_column is not None:
+            proto.end_column = end_column
+        if token is not None:
+            proto.token = token
+
         return proto
 
-    def _encode_put_row(self, table_name, condition, primary_key, attribute_columns):
+    def _encode_put_row(self, table_name, row, condition, return_type):
         proto = pb2.PutRowRequest()
         proto.table_name = self._get_unicode(table_name)
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
-        self._make_columns_with_dict(proto.primary_key, primary_key)
-        self._make_columns_with_dict(proto.attribute_columns, attribute_columns)
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
+
+        proto.row = str(PlainBufferBuilder.serialize_for_put_row(row.primary_key, row.attribute_columns))
         return proto
 
-    def _encode_update_row(self, table_name, condition, primary_key, update_of_attribute_columns):
+    def _encode_update_row(self, table_name, row, condition, return_type):
         proto = pb2.UpdateRowRequest()
         proto.table_name = self._get_unicode(table_name)
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
-        self._make_columns_with_dict(proto.primary_key, primary_key)
-        self._make_update_of_attribute_columns_with_dict(proto.attribute_columns, update_of_attribute_columns)
+
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
+
+        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(row.primary_key, row.attribute_columns))
         return proto
 
-    def _encode_delete_row(self, table_name, condition, primary_key):
+    def _encode_delete_row(self, table_name, row, condition, return_type):
         proto = pb2.DeleteRowRequest()
         proto.table_name = self._get_unicode(table_name)
+        if condition is None:
+            condition = Condition(RowExistenceExpectation.IGNORE, None)
         self._make_condition(proto.condition, condition)
-        self._make_columns_with_dict(proto.primary_key, primary_key)
+
+        if return_type == ReturnType.RT_PK:
+            proto.return_content.return_type = pb2.RT_PK
+
+        proto.primary_key = str(PlainBufferBuilder.serialize_for_delete_row(row.primary_key))
         return proto
 
     def _encode_batch_get_row(self, request):
@@ -589,16 +630,38 @@ class OTSProtoBufferEncoder:
 
     def _encode_get_range(self, table_name, direction, 
                 inclusive_start_primary_key, exclusive_end_primary_key, 
-                columns_to_get, limit, column_filter):
+                columns_to_get, limit, column_filter,
+                max_version, time_range, start_column,
+                end_column, token):
         proto = pb2.GetRangeRequest()
         proto.table_name = self._get_unicode(table_name)
         proto.direction = self._get_direction(direction)
-        self._make_columns_with_dict(proto.inclusive_start_primary_key, inclusive_start_primary_key)
-        self._make_columns_with_dict(proto.exclusive_end_primary_key, exclusive_end_primary_key)
         self._make_repeated_column_names(proto.columns_to_get, columns_to_get)
-        self._make_column_condition(proto.filter, column_filter)
+
+        proto.inclusive_start_primary_key = str(PlainBufferBuilder.serialize_primary_key(inclusive_start_primary_key))
+        proto.exclusive_end_primary_key = str(PlainBufferBuilder.serialize_primary_key(exclusive_end_primary_key))
+
+        if column_filter is not None:
+            pb_filter = filter_pb2.Filter()
+            self._make_column_condition(pb_filter, column_filter)
+            proto.filter = pb_filter.SerializeToString()
+
         if limit is not None:
             proto.limit = self._get_int32(limit)
+        if max_version is not None:
+            proto.max_versions = max_version
+        if time_range is not None:
+            if isinstance(time_range, tuple):
+                proto.time_range.start_time = time_range[0]
+                proto.time_range.end_time = time_range[1]
+            elif isinstance(time_range, int) or isinstance(time_range, long):
+                proto.time_range.specific_time = time_range 
+        if start_column is not None:
+            proto.start_column = start_column
+        if end_column is not None:
+            proto.end_colun = end_column
+        if token is not None:
+            proto.token = token
         return proto
 
     def encode_request(self, api_name, *args, **kwargs):

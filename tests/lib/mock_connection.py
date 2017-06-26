@@ -8,12 +8,13 @@ import urlparse
 
 import google.protobuf.text_format as text_format
 
-from ots2.metadata import *
-from ots2.error import *
-import ots2.protobuf.ots_protocol_2_pb2 as pb2
+from tablestore import * 
+from tablestore.metadata import *
+from tablestore.error import *
+import tablestore.protobuf.table_store_pb2 as pb2
 
 
-class MockConnection:
+class MockConnection(object):
 
     def __init__(self, host, path, timeout=0, maxsize=50):
         self.host = host

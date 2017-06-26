@@ -8,7 +8,7 @@ except ImportError:
 
 
 version = ''
-with open('ots2/__init__.py', 'r') as fd:
+with open('tablestore/__init__.py', 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                         fd.read(), re.MULTILINE).group(1)
 
@@ -20,14 +20,14 @@ with open('README.rst', 'rb') as f:
     readme = f.read().decode('utf-8')
 
 setup(
-    name='ots2',
+    name='tablestore',
     version=version,
     description='Aliyun TableStore(OTS) SDK',
     long_description=readme,
-    packages=['ots2', 'ots2.protobuf'],
+    packages=['tablestore', 'tablestore.protobuf', 'tablestore.plainbuffer'],
     install_requires=['protobuf-py3>=2.5.1', 'urllib3>=1.14', 'certifi>=2016.2.28'],
     include_package_data=True,
-    url='http://ots.aliyun.com',
+    url='https://cn.aliyun.com/product/ots',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

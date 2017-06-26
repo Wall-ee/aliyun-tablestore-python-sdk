@@ -2,10 +2,12 @@
 
 import google.protobuf.text_format as text_format
 
-from ots2.metadata import *
-import ots2.protobuf.ots_protocol_2_pb2 as pb2
+from tablestore.metadata import *
+from tablestore.plainbuffer.plain_buffer_builder import *
+import tablestore.protobuf.table_store_pb2 as pb2
+import tablestore.protobuf.table_store_filter_pb2 as filter_pb2
 
-class OTSProtoBufferDecoder:
+class OTSProtoBufferDecoder(object):
 
     def __init__(self, encoding):
         self.encoding = encoding
@@ -33,18 +35,23 @@ class OTSProtoBufferDecoder:
 
     def _parse_column_type(self, column_type_enum):
         reverse_enum_map = {
-            pb2.INF_MIN : 'INF_MIN',
-            pb2.INF_MAX : 'INF_MAX',
             pb2.INTEGER : 'INTEGER',
             pb2.STRING  : 'STRING',
-            pb2.BOOLEAN : 'BOOLEAN',
-            pb2.DOUBLE  : 'DOUBLE',
             pb2.BINARY  : 'BINARY'
         }
         if column_type_enum in reverse_enum_map:
             return reverse_enum_map[column_type_enum]
         else:
             raise OTSClientError("invalid value for column type: %s" % str(column_type_enum))
+
+    def _parse_column_option(self, column_option_enum):
+        reverse_enum_map = {
+            pb2.AUTO_INCREMENT : PK_AUTO_INCR,
+        }
+        if column_option_enum in reverse_enum_map:
+            return reverse_enum_map[column_option_enum]
+        else:
+            raise OTSClientError("invalid value for column option: %s" % str(column_option_enum))        
 
     def _parse_value(self, proto):
         if proto.type == pb2.INTEGER:
@@ -63,7 +70,11 @@ class OTSProtoBufferDecoder:
     def _parse_schema_list(self, proto):
         ret = []
         for item in proto:
-            ret.append((item.name, self._parse_column_type(item.type)))
+            if item.HasField('option'):
+                ret.append((item.name, self._parse_column_type(item.type), self._parse_column_option(item.option)))
+            else:
+                ret.append((item.name, self._parse_column_type(item.type)))
+
         return ret
 
     def _parse_column_dict(self, proto):
@@ -100,20 +111,32 @@ class OTSProtoBufferDecoder:
         reserved_throughput_details = ReservedThroughputDetails(
             capacity_unit,
             proto.last_increase_time, 
-            last_decrease_time,
-            proto.number_of_decreases_today
+            last_decrease_time
         )
         return reserved_throughput_details
+
+    def _parse_table_options(self, proto):
+        time_to_live = proto.time_to_live 
+        max_versions = proto.max_versions
+        max_deviation_time  = proto.deviation_cell_version_in_sec
+        return TableOptions(time_to_live, max_versions, max_deviation_time)
+
 
     def _parse_get_row_item(self, proto, table_name):
         row_list = []
         for row_item in proto:
+            primary_key_columns = None 
+            attribute_columns = None
+
             if row_item.is_ok:
                 error_code = None
                 error_message = None
                 capacity_unit = self._parse_capacity_unit(row_item.consumed.capacity_unit)
-                primary_key_columns = self._parse_column_dict(row_item.row.primary_key_columns)
-                attribute_columns = self._parse_column_dict(row_item.row.attribute_columns)
+
+                if len(row_item.row) != 0:
+                    inputStream = PlainBufferInputStream(row_item.row)
+                    codedInputStream = PlainBufferCodedInputStream(inputStream)
+                    primary_key_columns, attribute_columns = codedInputStream.read_row()
             else:
                 error_code = row_item.error.code
                 error_message = row_item.error.message if row_item.error.HasField('message') else ''
@@ -121,8 +144,6 @@ class OTSProtoBufferDecoder:
                     capacity_unit = self._parse_capacity_unit(row_item.consumed.capacity_unit)
                 else:
                     capacity_unit = None
-                primary_key_columns = None
-                attribute_columns = None
 
             row_data_item = RowDataItem(
                 row_item.is_ok, error_code, error_message,
@@ -139,42 +160,41 @@ class OTSProtoBufferDecoder:
             rows.append(self._parse_get_row_item(table_item.rows, table_item.table_name)) 
         return rows
 
-    def _parse_write_row_item(self, proto, table_name):
-        row_list = []
-        for row_item in proto:
-            if row_item.is_ok:
-                error_code = None
-                error_message = None
+    def _parse_write_row_item(self, row_item):
+        primary_key_columns = None 
+        attribute_columns = None
+
+        if row_item.is_ok:
+            error_code = None
+            error_message = None
+            consumed = self._parse_capacity_unit(row_item.consumed.capacity_unit)
+
+            if len(row_item.row) != 0:
+                inputStream = PlainBufferInputStream(row_item.row)
+                codedInputStream = PlainBufferCodedInputStream(inputStream)
+                primary_key_columns, attribute_columns = codedInputStream.read_row()
+        else:
+            error_code = row_item.error.code
+            error_message = row_item.error.message if row_item.error.HasField('message') else ''
+            if row_item.HasField('consumed'):
                 consumed = self._parse_capacity_unit(row_item.consumed.capacity_unit)
             else:
-                error_code = row_item.error.code
-                error_message = row_item.error.message if row_item.error.HasField('message') else ''
-                if row_item.HasField('consumed'):
-                    consumed = self._parse_capacity_unit(row_item.consumed.capacity_unit)
-                else:
-                    consumed = None
+                consumed = None
 
-            write_row_item = BatchWriteRowResponseItem(
-                row_item.is_ok, error_code, error_message, table_name, consumed
+        write_row_item = BatchWriteRowResponseItem(
+            row_item.is_ok, error_code, error_message, consumed, primary_key_columns
             )
-            row_list.append(write_row_item)
-        
-        return row_list
+        return write_row_item
 
     def _parse_batch_write_row(self, proto):
-        result_list = []
+        result_list = {}
         for table_item in proto:
-            table_dict = {}
-            if table_item.put_rows:
-                put_list = self._parse_write_row_item(table_item.put_rows, table_item.table_name)
-                table_dict['put'] = put_list
-            if table_item.update_rows:
-                update_list = self._parse_write_row_item(table_item.update_rows, table_item.table_name)
-                table_dict['update'] = update_list
-            if table_item.delete_rows:
-                delete_list = self._parse_write_row_item(table_item.delete_rows, table_item.table_name)
-                table_dict['delete'] = delete_list
-            result_list.append(table_dict)
+            table_name = table_item.table_name
+            result_list[table_name] = []
+
+            for row_item in table_item.rows:
+                row = self._parse_write_row_item(row_item)
+                result_list[table_name].append(row)
         return result_list
 
     def _decode_create_table(self, body):
@@ -205,7 +225,8 @@ class OTSProtoBufferDecoder:
         )
         
         reserved_throughput_details = self._parse_reserved_throughput_details(proto.reserved_throughput_details)
-        describe_table_response = DescribeTableResponse(table_meta, reserved_throughput_details)
+        table_options = self._parse_table_options(proto.table_options)
+        describe_table_response = DescribeTableResponse(table_meta, table_options, reserved_throughput_details)
         return describe_table_response, proto
 
     def _decode_update_table(self, body):
@@ -213,7 +234,8 @@ class OTSProtoBufferDecoder:
         proto.ParseFromString(body)
 
         reserved_throughput_details = self._parse_reserved_throughput_details(proto.reserved_throughput_details)
-        update_table_response = UpdateTableResponse(reserved_throughput_details)
+        table_options = self._parse_table_options(proto.table_options)
+        update_table_response = UpdateTableResponse(reserved_throughput_details, table_options)
 
         return update_table_response, proto
 
@@ -221,30 +243,67 @@ class OTSProtoBufferDecoder:
         proto = pb2.GetRowResponse()
         proto.ParseFromString(body)
 
-        primary_key_columns, attribute_columns = self._parse_row(proto.row)
         consumed = self._parse_capacity_unit(proto.consumed.capacity_unit)
-        return (consumed, primary_key_columns, attribute_columns), proto
+        next_token = proto.next_token
+
+        return_row = None
+
+        if len(proto.row) != 0:
+            inputStream = PlainBufferInputStream(proto.row)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)
+            primary_key, attributes = codedInputStream.read_row()
+            return_row = Row(primary_key, attributes)
+
+        return (consumed, return_row, next_token), proto
 
     def _decode_put_row(self, body):
         proto = pb2.PutRowResponse()
         proto.ParseFromString(body)
 
         consumed = self._parse_capacity_unit(proto.consumed.capacity_unit)
-        return consumed, proto
+
+        return_row = None
+
+        if len(proto.row) != 0:
+            inputStream = PlainBufferInputStream(proto.row)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)
+            primary_key, attribute_columns = codedInputStream.read_row()
+            return_row = Row(primary_key, attribute_columns)
+
+        return (consumed, return_row), proto
 
     def _decode_update_row(self, body):
         proto = pb2.UpdateRowResponse()
         proto.ParseFromString(body)
 
         consumed = self._parse_capacity_unit(proto.consumed.capacity_unit)
-        return consumed, proto
+        
+        return_row = None
+
+        if len(proto.row) != 0:
+            inputStream = PlainBufferInputStream(proto.row)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)
+            primary_key, attribute_columns = codedInputStream.read_row()
+            return_row = Row(primary_key, attribute_columns)
+
+        return (consumed, return_row), proto
 
     def _decode_delete_row(self, body):
         proto = pb2.DeleteRowResponse()
         proto.ParseFromString(body)
 
         consumed = self._parse_capacity_unit(proto.consumed.capacity_unit)
-        return consumed, proto
+
+        return_row = None
+
+        if len(proto.row) != 0:
+            inputStream = PlainBufferInputStream(proto.row)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)
+            primary_key, attribute_columns = codedInputStream.read_row()
+            return_row = Row(primary_key, attribute_columns)
+
+        return (consumed, return_row), proto
+
 
     def _decode_batch_get_row(self, body):
         proto = pb2.BatchGetRowResponse()
@@ -265,11 +324,22 @@ class OTSProtoBufferDecoder:
         proto.ParseFromString(body)
         
         capacity_unit = self._parse_capacity_unit(proto.consumed.capacity_unit)
-        next_start_pk = self._parse_column_dict(proto.next_start_primary_key)
-        if not next_start_pk:
-            next_start_pk = None
-        row_list = self._parse_row_list(proto.rows)
-        return (capacity_unit, next_start_pk, row_list), proto
+
+        next_start_pk = None
+        row_list = []
+        if len(proto.next_start_primary_key) != 0:
+            inputStream = PlainBufferInputStream(proto.next_start_primary_key)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)            
+            next_start_pk,att = codedInputStream.read_row()
+
+        if len(proto.rows) != 0:
+            inputStream = PlainBufferInputStream(proto.rows)
+            codedInputStream = PlainBufferCodedInputStream(inputStream)
+            row_list = codedInputStream.read_rows()
+        
+        next_token = proto.next_token
+            
+        return (capacity_unit, next_start_pk, row_list, next_token), proto
 
     def decode_response(self, api_name, response_body):
         if api_name not in self.api_decode_map:

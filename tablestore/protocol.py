@@ -10,27 +10,28 @@ import calendar
 import logging
 import sys
 import platform
-from email.utils import formatdate
+import datetime 
 from email.utils import parsedate 
 
 import google.protobuf.text_format as text_format
 
-import ots2
-from ots2.error import *
-from ots2.protobuf.encoder import OTSProtoBufferEncoder
-from ots2.protobuf.decoder import OTSProtoBufferDecoder
-import ots2.protobuf.ots_protocol_2_pb2 as pb2
+import tablestore
+from tablestore.error import *
+from tablestore.protobuf.encoder import OTSProtoBufferEncoder
+from tablestore.protobuf.decoder import OTSProtoBufferDecoder
+import tablestore.protobuf.table_store_pb2 as pb2
+import tablestore.protobuf.table_store_filter_pb2 as filter_pb2
 
 
-class OTSProtocol:
+class OTSProtocol(object):
 
-    api_version = '2014-08-08'
+    api_version = '2015-12-31'
 
     encoder_class = OTSProtoBufferEncoder
     decoder_class = OTSProtoBufferDecoder
 
     python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
-    user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (ots2.__version__, platform.system(), platform.release(), platform.machine(), python_version)
+    user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (tablestore.__version__, platform.system(), platform.release(), platform.machine(), python_version)
 
     api_list = {
         'CreateTable',
@@ -87,7 +88,8 @@ class OTSProtocol:
 
         md5 = base64.b64encode(hashlib.md5(body).digest())
 
-        date = formatdate(time.time(), usegmt=True)
+        #date = datetime.datetime.utcnow().isoformat()
+        date = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z')
         
         headers = {
             'x-ots-date' : date,
@@ -149,13 +151,13 @@ class OTSProtocol:
         # 3, check date 
         if 'x-ots-date' in headers:
             try:
-                server_time = parsedate(headers['x-ots-date'])
+                server_time = datetime.datetime.strptime(headers['x-ots-date'], "%Y-%m-%dT%H:%M:%S.%fZ")
             except ValueError:
                 raise OTSClientError('Invalid date format in response.')
         
             # 4, check date range
-            server_unix_time = calendar.timegm(server_time)
-            now_unix_time = time.time()
+            server_unix_time = time.mktime(server_time.timetuple())
+            now_unix_time = time.mktime(datetime.datetime.utcnow().timetuple())
             if abs(server_unix_time - now_unix_time) > 15 * 60:
                 raise OTSClientError('The difference between date in response and system time is more than 15 minutes.')
 
@@ -181,7 +183,6 @@ class OTSProtocol:
             raise OTSClientError('Invalid signature in response.')
 
     def make_request(self, api_name, *args, **kwargs):
-        
         if api_name not in self.api_list:
             raise OTSClientError('API %s is not supported.' % api_name)
 
@@ -214,7 +215,7 @@ class OTSProtocol:
 
         try:
             ret, proto = self.decoder.decode_response(api_name, body)
-        except Exception, e:
+        except Exception as e:
             request_id = self._get_request_id_string(headers)
             error_message = 'Response format is invalid, %s, RequestID: %s, " \
                 "HTTP status: %s, Body: %s.' % (str(e), request_id, status, body)
@@ -247,7 +248,7 @@ class OTSProtocol:
             self._check_headers(std_headers, body, status=status)
             if status != 403:
                 self._check_authorization(query, std_headers, status=status)
-        except OTSClientError, e:
+        except OTSClientError as e:
             e.http_status = status
             e.message += " HTTP status: %s." % status
             raise e
@@ -270,7 +271,7 @@ class OTSProtocol:
             try:
                 if status == 403 and error_proto.code != "OTSAuthFailed":
                     self._check_authorization(query, std_headers)
-            except OTSClientError, e:
+            except OTSClientError as e:
                 e.http_status = status
                 e.message += " HTTP status: %s." % status
                 raise e

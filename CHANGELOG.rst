@@ -3,6 +3,14 @@ TableStore SDK for Python 版本记录
 
 Python SDK的版本号遵循 `Semantic Versioning <http://semver.org/>`_ 规则。
 
+Version 4.0.0
+-------------
+
+- 支持主键列自增功能
+- 支持多版本
+- 支持TTL
+- 增大重试时间
+
 Version 2.0.8
 -------------
 

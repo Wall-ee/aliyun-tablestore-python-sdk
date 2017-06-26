@@ -1,32 +1,38 @@
 # -*- coding: utf8 -*-
 
-__version__ = '2.1.0'
+__version__ = '4.0.0'
 __all__ = [
     'OTSClient',
 
     # Data Types
     'INF_MIN',
     'INF_MAX',
+    'PK_AUTO_INCR',
     'TableMeta',
+    'TableOptions',
     'CapacityUnit',
     'ReservedThroughput',
     'ReservedThroughputDetails',
     'ColumnType',
+    'ReturnType',
+    'Column',
     'Direction',
     'UpdateTableResponse',
     'DescribeTableResponse',
     'RowDataItem',
     'Condition',
+    'Row',
+    'RowItem',
     'PutRowItem',
     'UpdateRowItem',
     'DeleteRowItem',
-    'MultiTableInBatchGetRowItem',
+    'BatchGetRowRequest',
     'TableInBatchGetRowItem',
-    'MultiTableInBatchGetRowResult',
+    'BatchGetRowResponse',
     'BatchWriteRowType',
-    'MultiTableInBatchWriteRowItem',
+    'BatchWriteRowRequest',
     'TableInBatchWriteRowItem',
-    'MultiTableInBatchWriteRowResult',
+    'BatchWriteRowResponse',
     'BatchWriteRowResponseItem',
     'OTSClientError',
     'OTSServiceError',
@@ -35,15 +41,15 @@ __all__ = [
     'ComparatorType',
     'ColumnConditionType',
     'ColumnCondition',
-    'CompositeCondition',
-    'RelationCondition',
+    'CompositeColumnCondition',
+    'SingleColumnCondition',
     'RowExistenceExpectation',
 ]
 
 
-from ots2.client import OTSClient
+from tablestore.client import OTSClient
 
-from ots2.metadata import *
-from ots2.error import *
-from ots2.retry import *
-
+from tablestore.metadata import *
+from tablestore.error import *
+from tablestore.retry import *
+from tablestore.const import *
