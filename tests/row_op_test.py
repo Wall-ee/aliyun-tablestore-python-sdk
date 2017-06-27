@@ -175,8 +175,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXB' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -190,8 +190,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXC' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -205,8 +205,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXD' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -223,8 +223,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXE' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -242,8 +242,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXF' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -258,8 +258,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXG' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'BINARY'), ('PK2', 'BINARY')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -274,8 +274,8 @@ class RowOpTest(APITestBase):
         table_meta_a = TableMeta('AA', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         table_meta_b = TableMeta('BB', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit, 
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit, 
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta_a, table_options, reserved_throughput)
@@ -396,8 +396,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXH' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -431,8 +431,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXI' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -447,8 +447,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXY' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -520,8 +520,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXX' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -579,8 +579,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXA' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -598,8 +598,8 @@ class RowOpTest(APITestBase):
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
 
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -616,8 +616,8 @@ class RowOpTest(APITestBase):
         table_name = 'XXK' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
-            restriction.MaxReadWriteCapacityUnit,
-            restriction.MaxReadWriteCapacityUnit
+            restriction.MinReadWriteCapacityUnit,
+            restriction.MinReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
@@ -754,9 +754,9 @@ class RowOpTest(APITestBase):
         table_name = "table_test" + self.get_python_version()
         table_meta = TableMeta(table_name, pk_schema)
         table_options = TableOptions()
-        reserved_throughput = ReservedThroughput(CapacityUnit(restriction.MaxReadWriteCapacityUnit, restriction.MaxReadWriteCapacityUnit))
+        reserved_throughput = ReservedThroughput(CapacityUnit(restriction.MinReadWriteCapacityUnit, restriction.MinReadWriteCapacityUnit))
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('table_test')
+        self.wait_for_partition_load(table_name)
         
         remained_size = restriction.MaxColumnDataSizeForRow - restriction.MaxPKColumnNum * (restriction.MaxColumnNameLength + restriction.MaxPKStringValueLength)
         remained_column_cnt = restriction.MaxColumnCountForRow - restriction.MaxPKColumnNum

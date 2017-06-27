@@ -42,12 +42,13 @@ class APITestBase(TestCase):
             test_config.OTS_SECRET,
             test_config.OTS_INSTANCE,
             logger_name = 'APITestBase',
-            retry_policy=NoRetryPolicy(),
+            retry_policy=DefaultRetryPolicy(),
         )
         
         time.sleep(1) # to avoid too frequent table operations
         for table_name in self.client_test.list_table():
-            self.client_test.delete_table(table_name)
+            if table_name.find(self.get_python_version()) != -1:
+                self.client_test.delete_table(table_name)
 
     def tearDown(self):
         pass
