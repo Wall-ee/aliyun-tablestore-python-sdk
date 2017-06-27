@@ -15,8 +15,7 @@ class RowOpTest(APITestBase):
     """行读写测试"""
     # 行操作API： GetRow, PutRow, UpdateRow, BatchGetRow, BatchWriteRow, GetRange
     # 测试每一个写操作，都要用GetRow或BatchGetRow验证数据操作符合预期
-    def _check_all_row_op_with_exception_meta_not_match(self, wrong_pk, error_msg):
-        table_name = 'XX' + self.get_python_version()
+    def _check_all_row_op_with_exception_meta_not_match(self, table_name, wrong_pk, error_msg):
         try:
             self.client_test.get_row(table_name, wrong_pk, max_version=1)
             self.assert_false()
@@ -91,8 +90,7 @@ class RowOpTest(APITestBase):
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)
 
-    def _check_all_row_op_without_exception(self, pks, cols):
-        table_name = 'XX' + self.get_python_version()
+    def _check_all_row_op_without_exception(self, table_name, pks, cols):
         cu, row,token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(row, None)
         
@@ -174,7 +172,7 @@ class RowOpTest(APITestBase):
  
     def test_pk_name_not_match(self):
         """建一个表，PK为[('PK1', 'STRING')]，测试所有行操作API，PK为[('PK2', 'blah')]，期望返回OTSMetaNotMatch"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXB' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -185,11 +183,11 @@ class RowOpTest(APITestBase):
         self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK2', 'blah')]
-        self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
+        self._check_all_row_op_with_exception_meta_not_match(table_name, wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
 
     def test_pk_value_type_not_match(self):
         """建一个表，PK为[('PK1', 'STRING')]，测试所有行操作API，PK为[('PK2',  123)]，期望返回OTSMetaNotMatch"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXC' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -200,11 +198,11 @@ class RowOpTest(APITestBase):
         self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK2',123)]
-        self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
+        self._check_all_row_op_with_exception_meta_not_match(table_name, wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
 
     def test_pk_num_not_match(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')]，测试所有行操作API，PK为{'PK1' : 'blah'}或PK为{'PK1' : 'blah', 'PK2' : 123, 'PK3' : 'blah'}, 期望返回OTSMetaNotMatch"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXD' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -215,14 +213,14 @@ class RowOpTest(APITestBase):
         self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK1','blah')]
-        self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK size fail. Input: 1, Meta: 2.')
+        self._check_all_row_op_with_exception_meta_not_match(table_name, wrong_pk, 'Validate PK size fail. Input: 1, Meta: 2.')
 
         wrong_pk = [('PK1','blah'), ('PK2',123), ('PK3','blah')]
-        self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK size fail. Input: 3, Meta: 2.')
+        self._check_all_row_op_with_exception_meta_not_match(table_name, wrong_pk, 'Validate PK size fail. Input: 3, Meta: 2.')
 
     def test_pk_order_insensitive(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')]，测试所有行操作API，PK为OrderedDict([('PK2', 123), ('PK1', 'blah')])，期望相应的操作失败"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXE' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -234,14 +232,14 @@ class RowOpTest(APITestBase):
  
         pks = [('PK2', 123), ('PK1', 'blah')]
         try:
-            self._check_all_row_op_without_exception(pks, [('C1', 'V')])
+            self._check_all_row_op_without_exception(table_name, pks, [('C1', 'V')])
             self.assertTrue(False)
         except:
             pass
 
     def test_all_the_types(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')], 让所有的行操作API都操作行({'PK1' : 'blah', 'PK2' : 123}, {'C1' : 'blah', 'C2' : 123, 'C3' : True, 'C4' : False, 'C5' : 3.14, 'C6' : bytearray(1)})，期望相应的操作成功"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXF' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -253,11 +251,11 @@ class RowOpTest(APITestBase):
  
         pks = [('PK1' , 'blah'), ('PK2' , 123)]
         cols = [('C1' , 'blah'), ('C2' , 123), ('C3' , True), ('C4' , False), ('C5' , 3.14), ('C6' , bytearray(1))]
-        self._check_all_row_op_without_exception(pks, cols)
+        self._check_all_row_op_without_exception(table_name, pks, cols)
 
     def test_row_op_with_binary_type_pk(self):
         """建一个表[('PK1', 'BINARY'), ('PK2', 'BINARY')], 向表中预先插入一些数据，测试所有读写API对这些数据的读写操作，验证PK类型支持Binary之后所有API都是兼容的。"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXG' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'BINARY'), ('PK2', 'BINARY')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -269,7 +267,7 @@ class RowOpTest(APITestBase):
  
         pks = [('PK1', bytearray(3)), ('PK2' , bytearray(2))]
         cols = [('C1' , 'blah'), ('C2' , 123), ('C3' , True), ('C4' , False), ('C5' , 3.14), ('C6' , bytearray(1))]
-        self._check_all_row_op_without_exception(pks, cols)
+        self._check_all_row_op_without_exception(table_name, pks, cols)
 
     def test_columns_to_get_semantics(self):
         """有两个表，A，B，有4个行A0, A1, B0, B1，分别在这2个表上，数据都为({'PK1' : 'blah', 'PK2' : 123}, {'C1' : 'blah', 'C2' : 123, 'C3' : True, 'C4' : False, 'C5' : 3.14, 'C6' : bytearray(1)})，让GetRow读取A0，BatchGetRow读A0, A1, B0, B1，GetRange读取A0, A1，columns_to_get参数分别为空，['C1'], ['PK1'], ['blah']，期望返回符合预期，验证CU符合预期"""
@@ -395,7 +393,7 @@ class RowOpTest(APITestBase):
 
     def test_CU_consumed_for_whole_row(self):
         """有一行，数据为({'PK0' : 'blah'}, {'C1' : 500B, 'C2' : 500B})，读整行，或者只读PK0, C1, C2，期望消耗的CU为(2, 0)或(1, 0)"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXH' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK0', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -430,7 +428,7 @@ class RowOpTest(APITestBase):
         
     def test_get_row_miss(self):
         """GetRow读一个不存在的行, 期望返回为空, 验证消耗CU(1, 0)"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXI' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -596,7 +594,7 @@ class RowOpTest(APITestBase):
 
     def test_delete_row_but_expect_row_not_exist(self):
         """DeleteRow的row existence expectation为NOT_EXIST，期望返回OTSInvalidPK"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXJ' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(
@@ -615,7 +613,7 @@ class RowOpTest(APITestBase):
 
     def test_get_range_less_than_4K(self):
         """GetRange包含10行，数据不超过4K，或大于4K小于8K，期望消耗CU(1, 0)或者(2, 0)"""
-        table_name = 'XX' + self.get_python_version()
+        table_name = 'XXK' + self.get_python_version()
         table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -936,7 +934,7 @@ class RowOpTest(APITestBase):
 
     def test_all_the_ranges_for_2_PK(self):
         """一个表有2个PK, partition key 为 a < b < c < d，可以是STRING, INTEGER(分别测试)，每个partitionkey有2个行ax, ay, bx, by, cx, cy，其中x, y为第二个PK的值，分别为STRING, INTEGER, BOOlEAN。分别测试正反方向(测试反方向时把begine和end互换)的get_range: (a MIN, b MAX)，(b MAX, a MIN)（出错），(b MIN, a MAX)出错，(a MIN, a MAX), (a MAX, a MIN)（出错), (a MAX, b MIN), (a MAX, c MIN), (b x, a x)（出错）, (a x, a y), (a MIN, a y), (a x, a MAX), (a x, c x), (a x, c y), (a y, c x), (a x, a x)（出错），每个成功的操作检查数据返回符合期望，CU消耗符合期望"""
-        raw_table_name = 'T' + self.get_python_version()
+        raw_table_name = 'TE' + self.get_python_version()
         for first_pk_type in ('STRING', 'INTEGER'):
             for second_pk_type in ('STRING', 'INTEGER'):
                 table_name = raw_table_name + first_pk_type + second_pk_type
@@ -1143,7 +1141,7 @@ class RowOpTest(APITestBase):
     def test_one_delete_in_update(self):
         """当一行为空时，进行一个UpdateRow，并且仅包含一个Delete操作"""
 
-        table_name = 'T' + self.get_python_version()
+        table_name = 'TA' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))
@@ -1156,7 +1154,7 @@ class RowOpTest(APITestBase):
     def test_all_delete_in_update(self):
         """当一行为空时，进行一个UpdateRow，并且包含128个Delete操作"""
         
-        table_name = 'T' + self.get_python_version()
+        table_name = 'TB' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))
@@ -1177,7 +1175,7 @@ class RowOpTest(APITestBase):
     def test_one_delete_in_update_of_batch_write(self):
         """当一行为空时，进行一个BatchWriteRow的UpdateRow，并且仅包含一个Delete操作"""
         
-        table_name = 'T' + self.get_python_version()
+        table_name = 'TC' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         table_options = TableOptions()
@@ -1205,7 +1203,7 @@ class RowOpTest(APITestBase):
     def test_all_delete_in_update_of_batch_write(self):
         """当一行为空时，进行一个BatchWriteRow的UpdateRow，并且包含128个Delete操作"""
         
-        table_name = 'T' + self.get_python_version()
+        table_name = 'TD' + self.get_python_version()
 
         table_meta = TableMeta(table_name, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))

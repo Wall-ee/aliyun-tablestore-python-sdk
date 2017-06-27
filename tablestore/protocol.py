@@ -33,7 +33,7 @@ class OTSProtocol(object):
     if isinstance(sys.version_info, tuple):
         python_version = '%s.%s.%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
     else:
-        python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
+        python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
     user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (tablestore.__version__, platform.system(), platform.release(), platform.machine(), python_version)
 
     api_list = [

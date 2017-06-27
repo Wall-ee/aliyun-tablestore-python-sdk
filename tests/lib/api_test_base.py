@@ -352,7 +352,7 @@ class APITestBase(TestCase):
         if isinstance(sys.version_info, tuple):
             python_version = '%s_%s_%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
         else:
-            python_version = '%s_%s_%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
+            python_version = '%s_%s_%s' % (sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
         return python_version
         
 
