@@ -271,8 +271,10 @@ class RowOpTest(APITestBase):
 
     def test_columns_to_get_semantics(self):
         """有两个表，A，B，有4个行A0, A1, B0, B1，分别在这2个表上，数据都为({'PK1' : 'blah', 'PK2' : 123}, {'C1' : 'blah', 'C2' : 123, 'C3' : True, 'C4' : False, 'C5' : 3.14, 'C6' : bytearray(1)})，让GetRow读取A0，BatchGetRow读A0, A1, B0, B1，GetRange读取A0, A1，columns_to_get参数分别为空，['C1'], ['PK1'], ['blah']，期望返回符合预期，验证CU符合预期"""
-        table_meta_a = TableMeta('AA', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
-        table_meta_b = TableMeta('BB', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
+        table_name_a = 'AA' + self.get_python_version()
+        table_name_b = 'BB' + self.get_python_version()
+        table_meta_a = TableMeta(table_name_a, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
+        table_meta_b = TableMeta(table_name_b, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MinReadWriteCapacityUnit, 
             restriction.MinReadWriteCapacityUnit
@@ -280,8 +282,8 @@ class RowOpTest(APITestBase):
         table_options = TableOptions()
         self.client_test.create_table(table_meta_a, table_options, reserved_throughput)
         self.client_test.create_table(table_meta_b, table_options, reserved_throughput)
-        self.wait_for_partition_load('AA')
-        self.wait_for_partition_load('BB')
+        self.wait_for_partition_load(table_name_a)
+        self.wait_for_partition_load(table_name_b)
         
         pks0 = [('PK1', '0'), ('PK2', 123)]
         pks1 = [('PK1', '1'), ('PK2', 123)]
@@ -289,29 +291,29 @@ class RowOpTest(APITestBase):
         putrow_item0 = PutRowItem(Row(pks0, cols), Condition(RowExistenceExpectation.IGNORE))
         putrow_item1 = PutRowItem(Row(pks1, cols), Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('AA', [putrow_item0]))
-        request.add(TableInBatchWriteRowItem('BB', [putrow_item1]))
+        request.add(TableInBatchWriteRowItem(table_name_a, [putrow_item0]))
+        request.add(TableInBatchWriteRowItem(table_name_b, [putrow_item1]))
 
         self.client_test.batch_write_row(request)
 
-        cu, rrow, token = self.client_test.get_row('AA', pks0, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name_a, pks0, max_version=1)
         self.assert_equal(rrow.primary_key, pks0)
         self.assert_columns(rrow.attribute_columns, cols)
 
-        cu, rrow, token = self.client_test.get_row('AA', pks0, ['C1'], max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name_a, pks0, ['C1'], max_version=1)
         self.assert_equal(rrow.primary_key, pks0)
         self.assert_columns(rrow.attribute_columns, [('C1','blah')])
 
-        cu, rrow, token = self.client_test.get_row('AA', pks0, ['blah'], max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name_a, pks0, ['blah'], max_version=1)
         self.assert_equal(rrow, None)
         
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('AA', [pks0, pks1], [], None, 1))
-        request.add(TableInBatchGetRowItem('BB', [pks0, pks1], [], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_a, [pks0, pks1], [], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_b, [pks0, pks1], [], None, 1))
         response = self.client_test.batch_get_row(request)
 
         self.assertTrue(response.is_all_succeed())
-        table_result_0 = response.get_result_by_table('AA')
+        table_result_0 = response.get_result_by_table(table_name_a)
         self.assert_equal(2, len(table_result_0))
         self.assert_equal(True, table_result_0[0].is_ok)
         self.assert_equal(pks0, table_result_0[0].row.primary_key)
@@ -319,7 +321,7 @@ class RowOpTest(APITestBase):
         self.assert_equal(True, table_result_0[1].is_ok)
         self.assert_equal(None, table_result_0[1].row)
 
-        table_result_1 = response.get_result_by_table('BB')
+        table_result_1 = response.get_result_by_table(table_name_b)
         self.assert_equal(2, len(table_result_1))
         self.assert_equal(True, table_result_1[0].is_ok)
         self.assert_equal(None, table_result_1[0].row)
@@ -328,12 +330,12 @@ class RowOpTest(APITestBase):
         self.assert_columns(cols, table_result_1[1].row.attribute_columns)
 
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('AA', [pks0, pks1], ['C1'], None, 1))
-        request.add(TableInBatchGetRowItem('BB', [pks0, pks1], ['C1'], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_a, [pks0, pks1], ['C1'], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_b, [pks0, pks1], ['C1'], None, 1))
         response = self.client_test.batch_get_row(request)
         
         self.assertTrue(response.is_all_succeed())
-        table_result_0 = response.get_result_by_table('AA')
+        table_result_0 = response.get_result_by_table(table_name_a)
         self.assert_equal(2, len(table_result_0))
         self.assert_equal(True, table_result_0[0].is_ok)
         self.assert_equal(pks0, table_result_0[0].row.primary_key)
@@ -341,7 +343,7 @@ class RowOpTest(APITestBase):
         self.assert_equal(True, table_result_0[1].is_ok)
         self.assert_equal(None, table_result_0[1].row)
 
-        table_result_1 = response.get_result_by_table('BB')
+        table_result_1 = response.get_result_by_table(table_name_b)
         self.assert_equal(2, len(table_result_1))
         self.assert_equal(True, table_result_1[0].is_ok)
         self.assert_equal(None, table_result_1[0].row)
@@ -350,19 +352,19 @@ class RowOpTest(APITestBase):
         self.assert_columns([('C1', 'blah')], table_result_1[1].row.attribute_columns)
 
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('AA', [pks0, pks1], ['blah'], None, 1))
-        request.add(TableInBatchGetRowItem('BB', [pks0, pks1], ['blah'], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_a, [pks0, pks1], ['blah'], None, 1))
+        request.add(TableInBatchGetRowItem(table_name_b, [pks0, pks1], ['blah'], None, 1))
 
         response = self.client_test.batch_get_row(request)
         self.assertTrue(response.is_all_succeed())
-        table_result_0 = response.get_result_by_table('AA')
+        table_result_0 = response.get_result_by_table(table_name_a)
         self.assert_equal(2, len(table_result_0))
         self.assert_equal(True, table_result_0[0].is_ok)
         self.assert_equal(None, table_result_0[0].row)
         self.assert_equal(True, table_result_0[1].is_ok)
         self.assert_equal(None, table_result_0[1].row)
 
-        cu, next_pks, rows,token = self.client_test.get_range('AA', 'FORWARD', 
+        cu, next_pks, rows,token = self.client_test.get_range(table_name_a, 'FORWARD', 
                 [('PK1', INF_MIN), ('PK2', INF_MIN)], 
                 [('PK1', INF_MAX), ('PK2', INF_MAX)],
                 [], max_version=2
@@ -372,7 +374,7 @@ class RowOpTest(APITestBase):
         self.assert_equal(pks0, row.primary_key)
         self.assert_columns(cols, row.attribute_columns)
 
-        cu, next_pks, rows, token = self.client_test.get_range('AA', 'FORWARD', 
+        cu, next_pks, rows, token = self.client_test.get_range(table_name_a, 'FORWARD', 
                 [('PK1', INF_MIN), ('PK2',INF_MIN)], 
                 [('PK1', INF_MAX), ('PK2', INF_MAX)],
                 ['C1'],
@@ -904,15 +906,15 @@ class RowOpTest(APITestBase):
         """一个表有1个PK，测试方向为FORWARD/FORWARD，第一个begin(大于或等于)/(小于或等于)end，PK类型分别为STRING, INTEGER的情况，期望返回OTSInvalidPK"""
         table_name_string = 'table_test_get_range_when_direction_string' + self.get_python_version()
         table_meta_string = TableMeta(table_name_string, [('PK0', 'STRING')])
-        table_name_integer = 'table_test_get_range_when_direction_integer'
+        table_name_integer = 'table_test_get_range_when_direction_integer' + self.get_python_version()
         table_meta_integer = TableMeta(table_name_integer, [('PK0', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(100, 100))
         table_options = TableOptions()
 
         self.client_test.create_table(table_meta_string, table_options, reserved_throughput)
         self.client_test.create_table(table_meta_integer, table_options, reserved_throughput)
-        self.wait_for_partition_load('table_test_get_range_when_direction_string')
-        self.wait_for_partition_load('table_test_get_range_when_direction_integer')
+        self.wait_for_partition_load(table_name_string)
+        self.wait_for_partition_load(table_name_integer)
 
         pk_dict_small = [('PK0','AAA')]
         pk_dict_big = [('PK0','DDDD')]
@@ -1101,13 +1103,13 @@ class RowOpTest(APITestBase):
     def test_all_item_in_batch_write_row_failed(self):
         """当batch write row里的所有item全部后端失败时，期望每个item都返回具体的错误，而整个操作返回正常"""
     
-        table1 = "table1"
+        table1 = "table1" + self.get_python_version()
         table_meta1 = TableMeta(table1, [("PK", "INTEGER")])
         reserved_throughput = ReservedThroughput(CapacityUnit(50, 50))
         table_options = TableOptions()
         self.client_test.create_table(table_meta1, table_options, reserved_throughput)
 
-        self.wait_for_partition_load('table1')
+        self.wait_for_partition_load(table1)
         put_table1 = PutRowItem(Row([("PK", 11)], [("COL", "table1_11")]), Condition(RowExistenceExpectation.EXPECT_EXIST))
         update_table1 = UpdateRowItem(Row([("PK", 12)], {"put" : [("COL", "table1_12")]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
         delete_table1 = DeleteRowItem(Row([("PK", 13)]), Condition(RowExistenceExpectation.EXPECT_EXIST))
