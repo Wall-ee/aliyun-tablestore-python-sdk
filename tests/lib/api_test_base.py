@@ -277,7 +277,7 @@ class APITestBase(TestCase):
         time.sleep(5)
 
     def wait_for_partition_load(self, table_name, instance_name=""):
-        time.sleep(5)
+        time.sleep(10)
 
     def get_primary_keys(self, pk_cnt, pk_type, pk_name="PK", pk_value="x"):
         pk_schema = []
