@@ -16,32 +16,33 @@ class RowOpTest(APITestBase):
     # 行操作API： GetRow, PutRow, UpdateRow, BatchGetRow, BatchWriteRow, GetRange
     # 测试每一个写操作，都要用GetRow或BatchGetRow验证数据操作符合预期
     def _check_all_row_op_with_exception_meta_not_match(self, wrong_pk, error_msg):
+        table_name = 'XX' + self.get_python_version()
         try:
-            self.client_test.get_row('XX', wrong_pk, max_version=1)
+            self.client_test.get_row(table_name, wrong_pk, max_version=1)
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)
 
         try:
-            self.client_test.put_row('XX', Row(wrong_pk, [('col', 1)]), Condition(RowExistenceExpectation.IGNORE))
+            self.client_test.put_row(table_name, Row(wrong_pk, [('col', 1)]), Condition(RowExistenceExpectation.IGNORE))
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)
 
         try:
-            self.client_test.update_row('XX', Row(wrong_pk, {'put':[('C1', 'V')]}), Condition(RowExistenceExpectation.IGNORE))
+            self.client_test.update_row(table_name, Row(wrong_pk, {'put':[('C1', 'V')]}), Condition(RowExistenceExpectation.IGNORE))
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)
 
         try:
-            self.client_test.delete_row('XX', Row(wrong_pk), Condition(RowExistenceExpectation.IGNORE))
+            self.client_test.delete_row(table_name, Row(wrong_pk), Condition(RowExistenceExpectation.IGNORE))
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)    
 
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('XX', [wrong_pk], [], None, 1))
+        request.add(TableInBatchGetRowItem(table_name, [wrong_pk], [], None, 1))
         response = self.client_test.batch_get_row(request)
 
         succ, failed = response.get_result()
@@ -53,14 +54,14 @@ class RowOpTest(APITestBase):
         try:
             wrong_pk_item = PutRowItem(Row(wrong_pk, []), Condition(RowExistenceExpectation.IGNORE))
             request = BatchWriteRowRequest()
-            request.add(TableInBatchWriteRowItem('XX', [wrong_pk_item]))
+            request.add(TableInBatchWriteRowItem(table_name, [wrong_pk_item]))
             response = self.client_test.batch_write_row(request)
         except OTSServiceError as e:
             self.assert_error(e, 400, 'OTSParameterInvalid', 'Attribute column is missing.') 
 
         wrong_pk_item = UpdateRowItem(Row(wrong_pk, {'put':[('C1','V')]}), Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', [wrong_pk_item]))
+        request.add(TableInBatchWriteRowItem(table_name, [wrong_pk_item]))
         response = self.client_test.batch_write_row(request)
 
         put_succ, put_failed = response.get_update()
@@ -71,7 +72,7 @@ class RowOpTest(APITestBase):
         
         wrong_pk_item = DeleteRowItem(Row(wrong_pk), Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', [wrong_pk_item])) 
+        request.add(TableInBatchWriteRowItem(table_name, [wrong_pk_item])) 
         response = self.client_test.batch_write_row(request)
 
         put_succ, put_failed = response.get_delete()
@@ -85,33 +86,34 @@ class RowOpTest(APITestBase):
             get_range_end.append((k[0], INF_MAX))
 
         try:
-            self.client_test.get_range('XX', 'FORWARD', wrong_pk, get_range_end, max_version=1)
+            self.client_test.get_range(table_name, 'FORWARD', wrong_pk, get_range_end, max_version=1)
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 400, "OTSInvalidPK", error_msg)
 
     def _check_all_row_op_without_exception(self, pks, cols):
-        cu, row,token = self.client_test.get_row('XX', pks, max_version=1)
+        table_name = 'XX' + self.get_python_version()
+        cu, row,token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(row, None)
         
         row = Row(pks, cols)
-        cu,return_row = self.client_test.put_row('XX', row, Condition(RowExistenceExpectation.IGNORE))
-        cu, return_row, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,return_row = self.client_test.put_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
+        cu, return_row, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(return_row.primary_key, pks)
         self.assert_columns(return_row.attribute_columns, cols)
 
         row = Row(pks, {'put':cols})
-        cu,return_row = self.client_test.update_row('XX', row, Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow,token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,return_row = self.client_test.update_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow,token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
-        cu,return_row = self.client_test.delete_row('XX', Row(pks), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,return_row = self.client_test.delete_row(table_name, Row(pks), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow, None)
         
         request = BatchGetRowRequest()
-        request.add(TableInBatchGetRowItem('XX', [pks], [], None, 1))
+        request.add(TableInBatchGetRowItem(table_name, [pks], [], None, 1))
         response = self.client_test.batch_get_row(request)
 
         succ, failed = response.get_result()
@@ -123,7 +125,7 @@ class RowOpTest(APITestBase):
         row = Row(pks, cols)
         pks_item = PutRowItem(row, Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', [pks_item]))
+        request.add(TableInBatchWriteRowItem(table_name, [pks_item]))
         response = self.client_test.batch_write_row(request)
 
         put_succ, put_failed = response.get_put()
@@ -132,13 +134,13 @@ class RowOpTest(APITestBase):
         self.assert_equal(None, put_succ[0].error_code)
         self.assert_equal(None, put_succ[0].error_message)
         
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
         pks_item = UpdateRowItem(Row(pks, {'put':cols}), Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', [pks_item]))
+        request.add(TableInBatchWriteRowItem(table_name, [pks_item]))
         response = self.client_test.batch_write_row(request)        
 
         update_succ, update_failed = response.get_update()
@@ -147,13 +149,13 @@ class RowOpTest(APITestBase):
         self.assert_equal(None, update_succ[0].error_code)
         self.assert_equal(None, update_succ[0].error_message)
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
         pks_item = DeleteRowItem(Row(pks), Condition(RowExistenceExpectation.IGNORE))
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', [pks_item]))
+        request.add(TableInBatchWriteRowItem(table_name, [pks_item]))
         response = self.client_test.batch_write_row(request)
 
         delete_succ, delete_failed = response.get_delete()
@@ -162,52 +164,55 @@ class RowOpTest(APITestBase):
         self.assert_equal(None, delete_succ[0].error_code)
         self.assert_equal(None, delete_succ[0].error_message)
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow, None)
 
         get_range_end = []
         for k in pks:
             get_range_end.append((k[0], INF_MAX))
-        self.client_test.get_range('XX', 'FORWARD', pks, get_range_end, max_version=1)
+        self.client_test.get_range(table_name, 'FORWARD', pks, get_range_end, max_version=1)
  
     def test_pk_name_not_match(self):
         """建一个表，PK为[('PK1', 'STRING')]，测试所有行操作API，PK为[('PK2', 'blah')]，期望返回OTSMetaNotMatch"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK2', 'blah')]
         self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
 
     def test_pk_value_type_not_match(self):
         """建一个表，PK为[('PK1', 'STRING')]，测试所有行操作API，PK为[('PK2',  123)]，期望返回OTSMetaNotMatch"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK2',123)]
         self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK name fail. Input: PK2, Meta: PK1.')
 
     def test_pk_num_not_match(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')]，测试所有行操作API，PK为{'PK1' : 'blah'}或PK为{'PK1' : 'blah', 'PK2' : 123, 'PK3' : 'blah'}, 期望返回OTSMetaNotMatch"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         wrong_pk = [('PK1','blah')]
         self._check_all_row_op_with_exception_meta_not_match(wrong_pk, 'Validate PK size fail. Input: 1, Meta: 2.')
@@ -217,14 +222,15 @@ class RowOpTest(APITestBase):
 
     def test_pk_order_insensitive(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')]，测试所有行操作API，PK为OrderedDict([('PK2', 123), ('PK1', 'blah')])，期望相应的操作失败"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         pks = [('PK2', 123), ('PK1', 'blah')]
         try:
@@ -235,14 +241,15 @@ class RowOpTest(APITestBase):
 
     def test_all_the_types(self):
         """建一个表，PK为[('PK1', 'STRING'), ('PK2', 'INTEGER')], 让所有的行操作API都操作行({'PK1' : 'blah', 'PK2' : 123}, {'C1' : 'blah', 'C2' : 123, 'C3' : True, 'C4' : False, 'C5' : 3.14, 'C6' : bytearray(1)})，期望相应的操作成功"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING'), ('PK2', 'INTEGER')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING'), ('PK2', 'INTEGER')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         pks = [('PK1' , 'blah'), ('PK2' , 123)]
         cols = [('C1' , 'blah'), ('C2' , 123), ('C3' , True), ('C4' , False), ('C5' , 3.14), ('C6' , bytearray(1))]
@@ -250,14 +257,15 @@ class RowOpTest(APITestBase):
 
     def test_row_op_with_binary_type_pk(self):
         """建一个表[('PK1', 'BINARY'), ('PK2', 'BINARY')], 向表中预先插入一些数据，测试所有读写API对这些数据的读写操作，验证PK类型支持Binary之后所有API都是兼容的。"""
-        table_meta = TableMeta('XX', [('PK1', 'BINARY'), ('PK2', 'BINARY')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'BINARY'), ('PK2', 'BINARY')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
  
         pks = [('PK1', bytearray(3)), ('PK2' , bytearray(2))]
         cols = [('C1' , 'blah'), ('C2' , 123), ('C3' , True), ('C4' , False), ('C5' , 3.14), ('C6' , bytearray(1))]
@@ -387,143 +395,147 @@ class RowOpTest(APITestBase):
 
     def test_CU_consumed_for_whole_row(self):
         """有一行，数据为({'PK0' : 'blah'}, {'C1' : 500B, 'C2' : 500B})，读整行，或者只读PK0, C1, C2，期望消耗的CU为(2, 0)或(1, 0)"""
-        table_meta = TableMeta('XX', [('PK0', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK0', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         pks = [('PK0', 'blah')]
         cols = [('C1', 'V' * 512), ('C2', 'X' * 512)]
         row = Row(pks, cols)
-        self.client_test.put_row('XX', row, Condition(RowExistenceExpectation.IGNORE))
+        self.client_test.put_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
         try:
-            cu, rrow, token = self.client_test.get_row('XX', pks, ['PK0'], max_version=1)
+            cu, rrow, token = self.client_test.get_row(table_name, pks, ['PK0'], max_version=1)
             self.assertTrue(False)
         except:
             pass
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, ['C1'], max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, ['C1'], max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C1', 'V' * 512)])
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, ['C2'], max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, ['C2'], max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C2', 'X' * 512)])
         
     def test_get_row_miss(self):
         """GetRow读一个不存在的行, 期望返回为空, 验证消耗CU(1, 0)"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
         
         cu_expect = CapacityUnit(1, 0)
-        cu, rrow, token = self.client_test.get_row('XX', [('PK1', 'b')], max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, [('PK1', 'b')], max_version=1)
         self.assert_equal(rrow, None)
 
     def test_update_row_when_row_exist(self):
         """原有的行包含列 {'C0' : 2k, 'C1' : 2k}（2k指的是不重复的2k STRING），数据量小于8K大于4K，分别测试UpdateRow，row existence expectation为EXIST, IGNORE时，列值为分别为：{'C0' : 2k, 'C1' : 2k}（覆盖），{'C2' : 2k, 'C3' : 2k}（添加），{'C0' : Delete, 'C1' : Delete}（删除），{'C0' : 2k, 'C1' : Delete, 'C2' : 2k}(交错)。每次都用GetRow检查数据是否符合预期，并检查CU消耗是否正确"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XXY' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         pks = [('PK1', '0' * 20)]
         cols = [('C0', 'V' * 2048), ('C1', 'B' * 2048)]
         row = Row(pks, cols)
-        self.client_test.put_row('XX', row, Condition(RowExistenceExpectation.IGNORE))
+        self.client_test.put_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
 
         #EXIST+COVER
-        cu, return_row = self.client_test.update_row('XX', Row(pks, { 'put' : cols }), Condition(RowExistenceExpectation.EXPECT_EXIST))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, return_row = self.client_test.update_row(table_name, Row(pks, { 'put' : cols }), Condition(RowExistenceExpectation.EXPECT_EXIST))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
         #EXIST+ADD
         cols = [('C2', 'V' * 2048), ('C3', 'B' * 2048)]
-        cu, rrow = self.client_test.update_row('XX', Row(pks, { 'put' : cols }), Condition(RowExistenceExpectation.EXPECT_EXIST))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow = self.client_test.update_row(table_name, Row(pks, { 'put' : cols }), Condition(RowExistenceExpectation.EXPECT_EXIST))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C0', 'V' * 2048), ('C1', 'B' * 2048), ('C2', 'V' * 2048), ('C3', 'B' * 2048)])
         
         #EXIST+DELETE
-        cu, rrow = self.client_test.update_row('XX', Row(pks, { 'delete_all' : [('C0'), ('C1')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow = self.client_test.update_row(table_name, Row(pks, { 'delete_all' : [('C0'), ('C1')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C2', 'V' * 2048), ('C3', 'B' * 2048)])
 
         #EXIST+MIX
         cols = [('C0', 'V' * 2048), ('C1', None), ('C2', 'V' * 2048)]
-        cu = self.client_test.update_row('XX', Row(pks, {'put' : [('C0', 'V' * 2048), ('C2', 'V' * 2048)], 'delete_all' : [('C1')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu = self.client_test.update_row(table_name, Row(pks, {'put' : [('C0', 'V' * 2048), ('C2', 'V' * 2048)], 'delete_all' : [('C1')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C0', 'V' * 2048), ('C2', 'V' * 2048), ('C3', 'B' * 2048)])
 
         pks = [('PK1', '0' * 20)]
         cols = [('C0', 'V' * 2048), ('C1', 'B' * 2048)]
         row = Row(pks, cols)
-        self.client_test.put_row('XX', row, Condition(RowExistenceExpectation.IGNORE))
+        self.client_test.put_row(table_name, row, Condition(RowExistenceExpectation.IGNORE))
 
         #IGNORE+COVER
-        cu, rrow = self.client_test.update_row('XX', Row(pks, {'put':cols}), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow = self.client_test.update_row(table_name, Row(pks, {'put':cols}), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
         #IGNORE+ADD
         cols = [('C2', 'V' * 2048), ('C3', 'B' * 2048)]
-        cu,rrow = self.client_test.update_row('XX', Row(pks, {'put':cols}), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow,token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.update_row(table_name, Row(pks, {'put':cols}), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow,token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C0', 'V' * 2048), ('C1', 'B' * 2048), ('C2', 'V' * 2048), ('C3', 'B' * 2048)])
 
         #IGNORE+DELETE
-        cu,rrow = self.client_test.update_row('XX', Row(pks, {'delete_all':[('C0'), ('C1')]}), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.update_row(table_name, Row(pks, {'delete_all':[('C0'), ('C1')]}), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C2', 'V' * 2048), ('C3', 'B' * 2048)])
 
         #IGNORE+MIX
-        cu,rrow = self.client_test.update_row('XX', Row(pks, {'put':[('C0', 'V' * 2048), ('C2', 'V' * 2048)], 'delete_all':[('C1')]}), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow,token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.update_row(table_name, Row(pks, {'put':[('C0', 'V' * 2048), ('C2', 'V' * 2048)], 'delete_all':[('C1')]}), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow,token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, [('C0', 'V' * 2048), ('C2', 'V' * 2048), ('C3', 'B' * 2048)])
 
     def test_update_row_when_value_type_changed(self):
         """原有的行包含max个列，值分别为INTEGER, DOUBLE, STRING(8 byte), BOOLEAN, BINARY(8 byte)，测试PutRow包含max个列，值分别为INTEGER, DOUBLE, STRING(8 byte), BOOLEAN, BINARY(8 byte)，每次GetRow检查数据，并验证CU消耗正常。"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XXX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         pks = [('PK1', '0')]
         cols = []
         for i in range(0, restriction.MaxColumnCountForRow):
             cols.append(('C' + str(1000 + i), 1))
-        cu,rrow = self.client_test.put_row('XX', Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
+        cu,rrow = self.client_test.put_row(table_name, Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
@@ -531,8 +543,8 @@ class RowOpTest(APITestBase):
         cols = []
         for k in old_cols:
             cols.append((k[0],  1.0))
-        cu,rrow = self.client_test.put_row('XX', Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.put_row(table_name, Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
@@ -540,8 +552,8 @@ class RowOpTest(APITestBase):
         cols = []
         for k in old_cols:
             cols.append((k[0], 'V' * 8 ))
-        cu,rrow = self.client_test.put_row('XX', Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.put_row(table_name, Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
@@ -549,9 +561,9 @@ class RowOpTest(APITestBase):
         cols = []
         for k in old_cols:
             cols.append((k[0], True))
-        cu,rrow = self.client_test.put_row('XX', Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
+        cu,rrow = self.client_test.put_row(table_name, Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
 
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
@@ -559,31 +571,33 @@ class RowOpTest(APITestBase):
         cols = []
         for k in old_cols:
             cols.append((k[0], bytearray('V' * 8)))
-        cu,rrow = self.client_test.put_row('XX', Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
-        cu, rrow, token = self.client_test.get_row('XX', pks, max_version=1)
+        cu,rrow = self.client_test.put_row(table_name, Row(pks, cols), Condition(RowExistenceExpectation.IGNORE))
+        cu, rrow, token = self.client_test.get_row(table_name, pks, max_version=1)
         self.assert_equal(rrow.primary_key, pks)
         self.assert_columns(rrow.attribute_columns, cols)
 
     def test_update_row_but_expect_row_not_exist(self):
         """UpdateRow的row existence expectation为EXIST，期望返回OTSParameterInvalid"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XXA' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         try:
-            self.client_test.update_row('XX', Row([('PK1', '0')], {'put':[('Col0' , 'XXXX')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
+            self.client_test.update_row(table_name, Row([('PK1', '0')], {'put':[('Col0' , 'XXXX')]}), Condition(RowExistenceExpectation.EXPECT_EXIST))
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
     def test_delete_row_but_expect_row_not_exist(self):
         """DeleteRow的row existence expectation为NOT_EXIST，期望返回OTSInvalidPK"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         table_options = TableOptions()
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
@@ -591,24 +605,25 @@ class RowOpTest(APITestBase):
         ))
 
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         try:
-            self.client_test.delete_row('XX', Row([('PK1', '0')]), Condition(RowExistenceExpectation.EXPECT_EXIST))
+            self.client_test.delete_row(table_name, Row([('PK1', '0')]), Condition(RowExistenceExpectation.EXPECT_EXIST))
             self.assert_false()
         except OTSServiceError as e:
             self.assert_error(e, 403, "OTSConditionCheckFail", "Condition check failed.")
 
     def test_get_range_less_than_4K(self):
         """GetRange包含10行，数据不超过4K，或大于4K小于8K，期望消耗CU(1, 0)或者(2, 0)"""
-        table_meta = TableMeta('XX', [('PK1', 'STRING')])
+        table_name = 'XX' + self.get_python_version()
+        table_meta = TableMeta(table_name, [('PK1', 'STRING')])
         reserved_throughput = ReservedThroughput(CapacityUnit(
             restriction.MaxReadWriteCapacityUnit,
             restriction.MaxReadWriteCapacityUnit
         ))
         table_options = TableOptions()
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
-        self.wait_for_partition_load('XX')
+        self.wait_for_partition_load(table_name)
 
         rowitems = []
         for i in range(0, 9):
@@ -619,12 +634,12 @@ class RowOpTest(APITestBase):
             rowitems.append(putrow_item)
 
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', rowitems))
+        request.add(TableInBatchWriteRowItem(table_name, rowitems))
         self.client_test.batch_write_row(request)
 
         cu_sum = CapacityUnit(0, 0)
         i = 0
-        for row in self.client_test.xget_range('XX', 'FORWARD', [('PK1', INF_MIN)], [('PK1', INF_MAX)], cu_sum, max_version=1):
+        for row in self.client_test.xget_range(table_name, 'FORWARD', [('PK1', INF_MIN)], [('PK1', INF_MAX)], cu_sum, max_version=1):
             epk = [('PK1', str(i))]
             ecol = [('C', 'V' * 400)]
             self.assert_equal(row.primary_key, epk)
@@ -640,12 +655,12 @@ class RowOpTest(APITestBase):
             rowitems.append(putrow_item)
 
         request = BatchWriteRowRequest()
-        request.add(TableInBatchWriteRowItem('XX', rowitems))
+        request.add(TableInBatchWriteRowItem(table_name, rowitems))
         self.client_test.batch_write_row(request)
 
         cu_sum = CapacityUnit(0, 0)
         i = 0
-        for row in self.client_test.xget_range('XX', 'FORWARD', [('PK1', INF_MIN)], [('PK1', INF_MAX)], cu_sum, max_version=1):
+        for row in self.client_test.xget_range(table_name, 'FORWARD', [('PK1', INF_MIN)], [('PK1', INF_MAX)], cu_sum, max_version=1):
             epk = [('PK1', str(i))]
             ecol =[('C', 'V' * 800)]
             self.assert_equal(row.primary_key, epk)
