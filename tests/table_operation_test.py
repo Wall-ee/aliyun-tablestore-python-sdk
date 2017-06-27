@@ -45,7 +45,7 @@ class TableOperationTest(APITestBase):
             self.assert_error(e, 409, "OTSObjectAlreadyExist", "Requested table already exists.")
 
         table_list = self.client_test.list_table()
-        self.assert_equal(table_list, (table_name,))
+        self.assert_equal(1, table_list.count(table_name))
 
     def test_create_table_with_sequence(self):
         """创建一个表，PK的顺序的影响"""
@@ -57,7 +57,7 @@ class TableOperationTest(APITestBase):
         self.client_test.create_table(table_meta, table_options, reserved_throughput)
 
         table_list = self.client_test.list_table()
-        self.assert_equal(table_list, (table_name,))
+        self.assert_equal(1, table_list.count(table_name))
 
 
     def test_duplicate_PK_name_in_table_meta(self):
@@ -209,7 +209,7 @@ class TableOperationTest(APITestBase):
         table_name_1 = 'table1_CU_mess_up_test' + self.get_python_version()
         table_meta_1 = TableMeta(table_name_1, [('PK0', 'STRING'), ('PK1', 'STRING')])
         reserved_throughput_1 = ReservedThroughput(CapacityUnit(1, 2))
-        table_name_2 = 'table2_CU_mess_up_test'
+        table_name_2 = 'table2_CU_mess_up_test' + self.get_python_version()
         table_meta_2 = TableMeta(table_name_2, [('PK0', 'STRING'), ('PK1', 'STRING')])
         reserved_throughput_2 = ReservedThroughput(CapacityUnit(2, 1))
         pk_dict_exist = [('PK0','a'), ('PK1','1')]
