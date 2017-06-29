@@ -2,3 +2,5 @@
 build
 dist
 tablestore.egg-info
+test/*.log
+examples/*.log
