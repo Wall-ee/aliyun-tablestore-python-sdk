@@ -19,7 +19,7 @@ Aliyun TableStore SDK for Python
 运行环境
 ---------
 
-- 安装Python即可运行，目前仅支持python2.7，暂不支持python3.
+- 安装Python即可运行，目前仅支持python2.6和Python2.7，暂不支持python3.
 
 安装方法
 ---------
