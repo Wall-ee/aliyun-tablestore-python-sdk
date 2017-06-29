@@ -42,12 +42,13 @@ class APITestBase(TestCase):
             test_config.OTS_SECRET,
             test_config.OTS_INSTANCE,
             logger_name = 'APITestBase',
-            retry_policy=NoRetryPolicy(),
+            retry_policy=DefaultRetryPolicy(),
         )
         
         time.sleep(1) # to avoid too frequent table operations
         for table_name in self.client_test.list_table():
-            self.client_test.delete_table(table_name)
+            if table_name.find(self.get_python_version()) != -1:
+                self.client_test.delete_table(table_name)
 
     def tearDown(self):
         pass
@@ -347,4 +348,12 @@ class APITestBase(TestCase):
             value = 'V' * (column_size - len(key))
             columns.append((key,  value))
         return pks, columns
+
+    def get_python_version(self):
+        if isinstance(sys.version_info, tuple):
+            python_version = '%s_%s_%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+        else:
+            python_version = '%s_%s_%s' % (sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+        return python_version
+        
 

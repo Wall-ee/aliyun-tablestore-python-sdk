@@ -366,48 +366,48 @@ class SDKParamTest(unittest.TestCase):
             self.assertEqual("The input column_condition should be an instance of ColumnCondition, not str", str(e))
 
         try:
-            cond = Condition(RowExistenceExpectation.IGNORE, RelationCondition("", "", ""))
+            cond = Condition(RowExistenceExpectation.IGNORE, SingleColumnCondition("", "", ""))
             self.assertTrue(False)
         except OTSClientError, e:
             self.assertEqual("Expect input comparator should be one of ['ComparatorType.EQUAL', 'ComparatorType.NOT_EQUAL', 'ComparatorType.GREATER_THAN', 'ComparatorType.GREATER_EQUAL', 'ComparatorType.LESS_THAN', 'ComparatorType.LESS_EQUAL'], but ''", str(e))
 
 
     def test_column_condition(self):
-        cond = RelationCondition("uid", 100, ComparatorType.EQUAL)
+        cond = SingleColumnCondition("uid", 100, ComparatorType.EQUAL)
         self.assertEqual(ColumnConditionType.SINGLE_COLUMN_CONDITION, cond.get_type())
         
-        cond = CompositeCondition(LogicalOperator.AND)
+        cond = CompositeColumnCondition(LogicalOperator.AND)
         self.assertEqual(ColumnConditionType.COMPOSITE_COLUMN_CONDITION, cond.get_type())
        
 
     def test_relation_condition(self):
-        RelationCondition("uid", 100, ComparatorType.EQUAL)
-        RelationCondition("uid", 100, ComparatorType.NOT_EQUAL)
-        RelationCondition("uid", 100, ComparatorType.GREATER_THAN)
-        RelationCondition("uid", 100, ComparatorType.GREATER_EQUAL)
-        RelationCondition("uid", 100, ComparatorType.LESS_THAN)
-        RelationCondition("uid", 100, ComparatorType.LESS_EQUAL)
+        SingleColumnCondition("uid", 100, ComparatorType.EQUAL)
+        SingleColumnCondition("uid", 100, ComparatorType.NOT_EQUAL)
+        SingleColumnCondition("uid", 100, ComparatorType.GREATER_THAN)
+        SingleColumnCondition("uid", 100, ComparatorType.GREATER_EQUAL)
+        SingleColumnCondition("uid", 100, ComparatorType.LESS_THAN)
+        SingleColumnCondition("uid", 100, ComparatorType.LESS_EQUAL)
 
         try:
-            cond = RelationCondition("uid", 100, "")
+            cond = SingleColumnCondition("uid", 100, "")
             self.assertTrue(False)
         except OTSClientError, e:
             self.assertEqual("Expect input comparator should be one of ['ComparatorType.EQUAL', 'ComparatorType.NOT_EQUAL', 'ComparatorType.GREATER_THAN', 'ComparatorType.GREATER_EQUAL', 'ComparatorType.LESS_THAN', 'ComparatorType.LESS_EQUAL'], but ''", str(e))
        
         try:
-            cond = RelationCondition("uid", 100, ComparatorType.LESS_EQUAL, "True")
+            cond = SingleColumnCondition("uid", 100, ComparatorType.LESS_EQUAL, "True")
             self.assertTrue(False)
         except OTSClientError, e:
             self.assertEqual("The input pass_if_missing should be an instance of Bool, not str", str(e))
        
 
     def test_composite_condition(self):
-        CompositeCondition(LogicalOperator.NOT)
-        CompositeCondition(LogicalOperator.AND)
-        CompositeCondition(LogicalOperator.OR)
+        CompositeColumnCondition(LogicalOperator.NOT)
+        CompositeColumnCondition(LogicalOperator.AND)
+        CompositeColumnCondition(LogicalOperator.OR)
 
         try:
-            cond = CompositeCondition("")
+            cond = CompositeColumnCondition("")
             self.assertTrue(False)
         except OTSClientError, e:
             self.assertEqual("Expect input combinator should be one of ['LogicalOperator.NOT', 'LogicalOperator.AND', 'LogicalOperator.OR'], but ''", str(e))

@@ -4,10 +4,17 @@
 __all__ = ['OTSClient']
 
 import sys
-import logging
 import urlparse
 import time
 import _strptime
+
+import logging
+try:  # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
 
 from tablestore.error import *
 from tablestore.protocol import OTSProtocol
@@ -80,7 +87,7 @@ class OTSClient(object):
         logger_name = kwargs.get('logger_name')
         if logger_name is None:
             self.logger = logging.getLogger(OTSClient.DEFAULT_LOGGER_NAME)
-            nullHandler = logging.NullHandler()
+            nullHandler = NullHandler()
             self.logger.addHandler(nullHandler)
         else:
             self.logger = logging.getLogger(logger_name)

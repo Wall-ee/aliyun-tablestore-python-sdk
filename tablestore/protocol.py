@@ -30,10 +30,13 @@ class OTSProtocol(object):
     encoder_class = OTSProtoBufferEncoder
     decoder_class = OTSProtoBufferDecoder
 
-    python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.micro, sys.version_info.minor)
+    if isinstance(sys.version_info, tuple):
+        python_version = '%s.%s.%s' % (sys.version_info[0], sys.version_info[1], sys.version_info[2])
+    else:
+        python_version = '%s.%s.%s' % (sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
     user_agent = 'aliyun-tablestore-sdk-python/%s(%s/%s/%s;%s)' % (tablestore.__version__, platform.system(), platform.release(), platform.machine(), python_version)
 
-    api_list = {
+    api_list = [
         'CreateTable',
         'ListTable',
         'DeleteTable',
@@ -46,7 +49,7 @@ class OTSProtocol(object):
         'BatchGetRow',
         'BatchWriteRow',
         'GetRange'
-    }
+    ]
 
     def __init__(self, user_id, user_key, instance_name, encoding, logger):
         self.user_id = user_id
