@@ -322,7 +322,9 @@ class PlainBufferCodedOutputStream(object):
             cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(value))
             cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value.decode("utf-8"))
         elif isinstance(value, float):
-            double_in_long, = struct.unpack("l", struct.pack("d", value))
+            #in 64bit system  long shoud be 8 bytes,use the type of long long
+            double_in_long, = struct.unpack("q", struct.pack("d", value))
+            # double_in_long, = struct.unpack("l", struct.pack("d", value))
             self.output_stream.write_raw_little_endian32(1 + LITTLE_ENDIAN_64_SIZE)
             self.output_stream.write_raw_byte(VT_DOUBLE)
             self.output_stream.write_double(value)
@@ -371,6 +373,7 @@ class PlainBufferCodedOutputStream(object):
 
         if timestamp is not None:
             self.write_tag(TAG_CELL_TIMESTAMP)
+            #timestamp in 64bit system should be different from 32bit system
             self.output_stream.write_raw_little_endian64(timestamp)
             cell_check_sum = PlainBufferCrc8.crc_int64(cell_check_sum, timestamp)
         self.write_tag(TAG_CELL_CHECKSUM)

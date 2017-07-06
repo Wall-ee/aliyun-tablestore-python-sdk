@@ -42,8 +42,8 @@ class PlainBufferCrc8(object):
 
     @staticmethod
     def _update(crc, bytes_):
-        if isinstance(bytes_, str):
-            bytes_ = bytes_.encode()
+        if isinstance(bytes_, bytes):
+            bytes_ = bytes_.decode()
         elif not isinstance(bytes_, str):
             raise TypeError("must be string or buffer, actual:" + str(type(bytes_)))
         for byte in bytes_:            

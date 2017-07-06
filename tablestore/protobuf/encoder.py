@@ -205,7 +205,7 @@ class OTSProtoBufferEncoder(object):
 
         proto.column_name = self._get_unicode(condition.column_name)
         #self._make_column_value(proto.column_value, condition.column_value)
-        proto.column_value = str(PlainBufferBuilder.serialize_column_value(condition.column_value))
+        proto.column_value = bytes(PlainBufferBuilder.serialize_column_value(condition.column_value))
         proto.filter_if_missing = not condition.pass_if_missing 
         proto.latest_version_only = condition.latest_version_only
 
@@ -561,7 +561,7 @@ class OTSProtoBufferEncoder(object):
             self._make_column_condition(pb_filter, column_filter)
             proto.filter = pb_filter.SerializeToString()
 
-        proto.primary_key = str(PlainBufferBuilder.serialize_primary_key(primary_key))
+        proto.primary_key = bytes(PlainBufferBuilder.serialize_primary_key(primary_key))
         if max_version is not None:
             proto.max_versions = max_version
         if time_range is not None:
@@ -589,7 +589,7 @@ class OTSProtoBufferEncoder(object):
         if return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.row = str(PlainBufferBuilder.serialize_for_put_row(row.primary_key, row.attribute_columns))
+        proto.row = bytes(PlainBufferBuilder.serialize_for_put_row(row.primary_key, row.attribute_columns))
         return proto
 
     def _encode_update_row(self, table_name, row, condition, return_type):
