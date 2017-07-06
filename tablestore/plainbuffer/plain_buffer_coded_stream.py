@@ -5,9 +5,9 @@ import struct
 from tablestore.const import *
 from tablestore.metadata import *
 from tablestore.error import *
-from plain_buffer_consts import *
-from plain_buffer_crc8 import *
-from plain_buffer_consts import *
+from .plain_buffer_consts import *
+from .plain_buffer_crc8 import *
+from .plain_buffer_consts import *
 
 class PlainBufferCodedInputStream(object):
     def __init__(self, input_stream):
@@ -254,13 +254,13 @@ class PlainBufferCodedOutputStream(object):
             self.output_stream.write_raw_little_endian32(1)
             self.output_stream.write_raw_byte(VT_AUTO_INCREMENT)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_AUTO_INCREMENT)
-        elif isinstance(value, int) or isinstance(value, long):
+        elif isinstance(value, int) or isinstance(value, int):
             self.output_stream.write_raw_little_endian32(1 + const.LITTLE_ENDIAN_64_SIZE)
             self.output_stream.write_raw_byte(VT_INTEGER)
             self.output_stream.write_raw_little_endian64(value)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_INTEGER)
             cell_check_sum = PlainBufferCrc8.crc_int64(cell_check_sum, value)
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, str):
             string_value = value
             prefix_length = const.LITTLE_ENDIAN_32_SIZE + 1
             self.output_stream.write_raw_little_endian32(prefix_length + len(string_value))
@@ -297,13 +297,13 @@ class PlainBufferCodedOutputStream(object):
                 cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 1)
             else:
                 cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, 0)
-        elif isinstance(value, int) or isinstance(value, long):
+        elif isinstance(value, int) or isinstance(value, int):
             self.output_stream.write_raw_little_endian32(1 + LITTLE_ENDIAN_64_SIZE)
             self.output_stream.write_raw_byte(VT_INTEGER)
             self.output_stream.write_raw_little_endian64(value)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_INTEGER)
             cell_check_sum = PlainBufferCrc8.crc_int64(cell_check_sum, value)
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, str):
             prefix_length = LITTLE_ENDIAN_32_SIZE + 1 
             self.output_stream.write_raw_little_endian32(prefix_length + len(value)) 
             self.output_stream.write_raw_byte(VT_STRING)
@@ -336,10 +336,10 @@ class PlainBufferCodedOutputStream(object):
         if isinstance(value, bool):
             self.output_stream.write_raw_byte(VT_BOOLEAN)
             self.output_stream.write_boolean(value)
-        elif isinstance(value, int) or isinstance(value, long):
+        elif isinstance(value, int) or isinstance(value, int):
             self.output_stream.write_raw_byte(VT_INTEGER)
             self.output_stream.write_raw_little_endian64(value)
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, str):
             self.output_stream.write_raw_byte(VT_STRING)
             self.output_stream.write_raw_little_endian32(len(value))
             self.output_stream.write_bytes(value)
@@ -434,10 +434,10 @@ class PlainBufferCodedOutputStream(object):
     def write_update_columns(self, attribute_columns, row_check_sum):
         if len(attribute_columns) != 0:
             self.write_tag(TAG_ROW_DATA)
-            for update_type in attribute_columns.keys():
+            for update_type in list(attribute_columns.keys()):
                 columns = attribute_columns[update_type]
                 for column in columns:
-                    if isinstance(column, str) or isinstance(column, unicode):
+                    if isinstance(column, str) or isinstance(column, str):
                         row_check_sum = self.write_update_column(update_type, column, None, row_check_sum)
                     elif len(column) == 2:
                         row_check_sum = self.write_update_column(update_type, column[0], (column[1], None), row_check_sum)

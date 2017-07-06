@@ -138,7 +138,7 @@ _SINGLECOLUMNVALUEFILTER = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='column_name', full_name='com.aliyun.tablestore.protocol.SingleColumnValueFilter.column_name', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -290,26 +290,22 @@ DESCRIPTOR.message_types_by_name['CompositeColumnValueFilter'] = _COMPOSITECOLUM
 DESCRIPTOR.message_types_by_name['ColumnPaginationFilter'] = _COLUMNPAGINATIONFILTER
 DESCRIPTOR.message_types_by_name['Filter'] = _FILTER
 
-class SingleColumnValueFilter(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class SingleColumnValueFilter(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _SINGLECOLUMNVALUEFILTER
 
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.SingleColumnValueFilter)
 
-class CompositeColumnValueFilter(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class CompositeColumnValueFilter(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _COMPOSITECOLUMNVALUEFILTER
 
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.CompositeColumnValueFilter)
 
-class ColumnPaginationFilter(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class ColumnPaginationFilter(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _COLUMNPAGINATIONFILTER
 
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ColumnPaginationFilter)
 
-class Filter(_message.Message):
-  __metaclass__ = _reflection.GeneratedProtocolMessageType
+class Filter(_message.Message, metaclass=_reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _FILTER
 
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.Filter)

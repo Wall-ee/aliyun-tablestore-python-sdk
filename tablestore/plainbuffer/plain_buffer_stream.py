@@ -108,4 +108,5 @@ class PlainBufferOutputStream(object):
     def write_bytes(self, value):
         if len(self.buffer) + len(value) > self.capacity:
             raise OTSClientError("The buffer is full.")
-        self.buffer += bytearray(value)
+        # self.buffer += bytearray(value)
+        # self.buffer += value

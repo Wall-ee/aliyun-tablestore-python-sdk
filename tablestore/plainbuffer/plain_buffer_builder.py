@@ -3,10 +3,10 @@
 import sys
 import tablestore 
 from tablestore.metadata import *
-from plain_buffer_consts import *
-from plain_buffer_crc8 import *
-from plain_buffer_stream import *
-from plain_buffer_coded_stream import *
+from .plain_buffer_consts import *
+from .plain_buffer_crc8 import *
+from .plain_buffer_stream import *
+from .plain_buffer_coded_stream import *
 
 class PlainBufferBuilder(object):
     @staticmethod
@@ -18,9 +18,9 @@ class PlainBufferBuilder(object):
             size += 1
             return size
 
-        if isinstance(value, int) or isinstance(value, long):
+        if isinstance(value, int) or isinstance(value, int):
             size += 8  #sizeof(int64_t)
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, str):
             size += const.LITTLE_ENDIAN_32_SIZE
             size += len(value)
         elif isinstance(value, bytearray):
@@ -50,9 +50,9 @@ class PlainBufferBuilder(object):
 
         if isinstance(value, bool):
             size += 1
-        elif isinstance(value, int) or isinstance(value, long): 
+        elif isinstance(value, int) or isinstance(value, int): 
             size += LITTLE_ENDIAN_64_SIZE
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str) or isinstance(value, str):
             size += const.LITTLE_ENDIAN_32_SIZE
             size += len(value)
         elif isinstance(value, bytearray):
@@ -120,9 +120,9 @@ class PlainBufferBuilder(object):
 
         if len(attribute_columns) != 0:
             size += 1
-            for update_type in attribute_columns.keys():
+            for update_type in list(attribute_columns.keys()):
                 columns = attribute_columns[update_type]
-                if isinstance(columns, str) or isinstance(columns, unicode):
+                if isinstance(columns, str) or isinstance(columns, str):
                     size += PlainBufferBuilder.compute_column_size2(column, None, update_type)
                 elif isinstance(columns, list):
                     for column in columns:
@@ -197,7 +197,7 @@ class PlainBufferBuilder(object):
         if not isinstance(attribute_columns, dict):
             raise OTSClientError("the attribute columns of UpdateRow is not dict, but is %s" % str(type(attribute_columns)))
 
-        for key in attribute_columns.keys():
+        for key in list(attribute_columns.keys()):
             if not isinstance(attribute_columns[key], list):
                 raise OTSClientError("the columns value of update-row must be list, but is %s" % 
                                      str(type(attribute_columns.values)))
