@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-import httplib
+import http.client
 import time
 
 from urllib3.poolmanager import PoolManager

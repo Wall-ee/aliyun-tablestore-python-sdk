@@ -1,11 +1,11 @@
 # -*- coding: utf8 -*-
 
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import hmac
 import base64
 import time
-import urlparse
+import urllib.parse
 import calendar
 import logging
 import sys
@@ -60,25 +60,25 @@ class OTSProtocol(object):
         self.logger = logger
 
     def _make_headers_string(self, headers):
-        headers_item = ["%s:%s" % (k.lower(), v.strip()) for k, v in headers.iteritems() if k.startswith('x-ots-') and k != 'x-ots-signature']
+        headers_item = ["%s:%s" % (k.lower(), v.strip()) for k, v in headers.items() if k.startswith('x-ots-') and k != 'x-ots-signature']
         return "\n".join(sorted(headers_item))
 
     def _call_signature_method(self, signature_string):
         # The signature method is supposed to be HmacSHA1
         # A switch case is required if there is other methods available
         signature = base64.b64encode(hmac.new(
-            self.user_key, signature_string, hashlib.sha1
+            self.user_key.encode(), signature_string.encode(), hashlib.sha1
         ).digest())
         return signature
 
     def _make_request_signature(self, query, headers):
-        uri, param_string, query_string = urlparse.urlparse(query)[2:5]
+        uri, param_string, query_string = urllib.parse.urlparse(query)[2:5]
 
         # TODO a special query should be input to test query sorting,
         # because none of the current APIs uses query map, but the sorting
         # is required in the protocol document.
-        query_pairs = urlparse.parse_qsl(query_string)
-        sorted_query = urllib.urlencode(sorted(query_pairs))
+        query_pairs = urllib.parse.parse_qsl(query_string)
+        sorted_query = urllib.parse.urlencode(sorted(query_pairs))
         signature_string = uri + '\n' + 'POST' + '\n' + sorted_query + '\n'
 
         headers_string = self._make_headers_string(headers)
@@ -89,7 +89,9 @@ class OTSProtocol(object):
     def _make_headers(self, body, query):
         # compose request headers and process request body if needed
 
-        md5 = base64.b64encode(hashlib.md5(body).digest())
+        #decode the byte type md5 in order to fit the signature method
+        md5 = base64.b64encode(hashlib.md5(body).digest()).decode('utf-8')
+
 
         #date = datetime.datetime.utcnow().isoformat()
         date = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z')
@@ -108,7 +110,7 @@ class OTSProtocol(object):
         return headers
 
     def _make_response_signature(self, query, headers):
-        uri = urlparse.urlparse(query)[2]
+        uri = urllib.parse.urlparse(query)[2]
         headers_string = self._make_headers_string(headers)
 
         signature_string = headers_string + '\n' + uri
@@ -121,7 +123,7 @@ class OTSProtocol(object):
         new urllib3 headers: {'header1':('header1', 'value1'), 'header2':('header2', 'value2')} 
         """
         std_headers = {}
-        for k,v in headers.iteritems():
+        for k,v in headers.items():
             if isinstance(v, tuple) and len(v) == 2:
                 std_headers[k.lower()] = v[1]
             else:
@@ -147,7 +149,8 @@ class OTSProtocol(object):
 
         # 2, check md5
         if 'x-ots-contentmd5' in headers:
-            md5 = base64.b64encode(hashlib.md5(body).digest())
+            #have to decode the byte string inorder to fit the header
+            md5 = base64.b64encode(hashlib.md5(body).digest()).decode('utf-8')
             if md5 != headers['x-ots-contentmd5']:
                 raise OTSClientError('MD5 mismatch in response.')
 
@@ -182,7 +185,8 @@ class OTSProtocol(object):
             raise OTSClientError('Invalid accesskeyid in response.')
 
         # 3, check signature
-        if signature != self._make_response_signature(query, headers):
+        # decode the byte type
+        if signature != self._make_response_signature(query, headers).decode('utf-8'):
             raise OTSClientError('Invalid signature in response.')
 
     def make_request(self, api_name, *args, **kwargs):

@@ -180,14 +180,14 @@ _ERROR = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='code', full_name='com.aliyun.tablestore.protocol.Error.code', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='message', full_name='com.aliyun.tablestore.protocol.Error.message', index=1,
       number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -215,7 +215,7 @@ _PRIMARYKEYSCHEMA = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='name', full_name='com.aliyun.tablestore.protocol.PrimaryKeySchema.name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -334,7 +334,7 @@ _TABLEMETA = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.TableMeta.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -607,7 +607,7 @@ _UPDATETABLEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.UpdateTableRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -684,7 +684,7 @@ _DESCRIBETABLEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.DescribeTableRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -810,7 +810,7 @@ _DELETETABLEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.DeleteTableRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -859,7 +859,7 @@ _LOADTABLEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.LoadTableRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -908,7 +908,7 @@ _UNLOADTABLEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.UnloadTableRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1027,7 +1027,7 @@ _GETROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.GetRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1069,14 +1069,14 @@ _GETROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='start_column', full_name='com.aliyun.tablestore.protocol.GetRowRequest.start_column', index=6,
       number=8, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='end_column', full_name='com.aliyun.tablestore.protocol.GetRowRequest.end_column', index=7,
       number=9, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1153,7 +1153,7 @@ _UPDATEROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.UpdateRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1237,7 +1237,7 @@ _PUTROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.PutRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1321,7 +1321,7 @@ _DELETEROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.DeleteRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1405,7 +1405,7 @@ _TABLEINBATCHGETROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.TableInBatchGetRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1454,14 +1454,14 @@ _TABLEINBATCHGETROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='start_column', full_name='com.aliyun.tablestore.protocol.TableInBatchGetRowRequest.start_column', index=7,
       number=9, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='end_column', full_name='com.aliyun.tablestore.protocol.TableInBatchGetRowRequest.end_column', index=8,
       number=10, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1573,7 +1573,7 @@ _TABLEINBATCHGETROWRESPONSE = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.TableInBatchGetRowResponse.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1685,7 +1685,7 @@ _TABLEINBATCHWRITEROWREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.TableInBatchWriteRowRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1797,7 +1797,7 @@ _TABLEINBATCHWRITEROWRESPONSE = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.TableInBatchWriteRowResponse.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1860,7 +1860,7 @@ _GETRANGEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='table_name', full_name='com.aliyun.tablestore.protocol.GetRangeRequest.table_name', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -1923,14 +1923,14 @@ _GETRANGEREQUEST = descriptor.Descriptor(
     descriptor.FieldDescriptor(
       name='start_column', full_name='com.aliyun.tablestore.protocol.GetRangeRequest.start_column', index=9,
       number=11, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='end_column', full_name='com.aliyun.tablestore.protocol.GetRangeRequest.end_column', index=10,
       number=12, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -2099,284 +2099,237 @@ DESCRIPTOR.message_types_by_name['BatchWriteRowResponse'] = _BATCHWRITEROWRESPON
 DESCRIPTOR.message_types_by_name['GetRangeRequest'] = _GETRANGEREQUEST
 DESCRIPTOR.message_types_by_name['GetRangeResponse'] = _GETRANGERESPONSE
 
-class Error(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class Error(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _ERROR
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.Error)
 
-class PrimaryKeySchema(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class PrimaryKeySchema(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _PRIMARYKEYSCHEMA
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.PrimaryKeySchema)
 
-class PartitionRange(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class PartitionRange(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _PARTITIONRANGE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.PartitionRange)
 
-class TableOptions(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableOptions(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEOPTIONS
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableOptions)
 
-class TableMeta(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableMeta(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEMETA
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableMeta)
 
-class Condition(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class Condition(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _CONDITION
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.Condition)
 
-class CapacityUnit(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class CapacityUnit(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _CAPACITYUNIT
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.CapacityUnit)
 
-class ReservedThroughputDetails(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ReservedThroughputDetails(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _RESERVEDTHROUGHPUTDETAILS
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ReservedThroughputDetails)
 
-class ReservedThroughput(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ReservedThroughput(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _RESERVEDTHROUGHPUT
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ReservedThroughput)
 
-class ConsumedCapacity(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ConsumedCapacity(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _CONSUMEDCAPACITY
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ConsumedCapacity)
 
-class CreateTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class CreateTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _CREATETABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.CreateTableRequest)
 
-class CreateTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class CreateTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _CREATETABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.CreateTableResponse)
 
-class UpdateTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UpdateTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UPDATETABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UpdateTableRequest)
 
-class UpdateTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UpdateTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UPDATETABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UpdateTableResponse)
 
-class DescribeTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DescribeTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DESCRIBETABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DescribeTableRequest)
 
-class DescribeTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DescribeTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DESCRIBETABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DescribeTableResponse)
 
-class ListTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ListTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _LISTTABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ListTableRequest)
 
-class ListTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ListTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _LISTTABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ListTableResponse)
 
-class DeleteTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DeleteTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DELETETABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DeleteTableRequest)
 
-class DeleteTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DeleteTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DELETETABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DeleteTableResponse)
 
-class LoadTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class LoadTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _LOADTABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.LoadTableRequest)
 
-class LoadTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class LoadTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _LOADTABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.LoadTableResponse)
 
-class UnloadTableRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UnloadTableRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UNLOADTABLEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UnloadTableRequest)
 
-class UnloadTableResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UnloadTableResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UNLOADTABLERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UnloadTableResponse)
 
-class TimeRange(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TimeRange(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TIMERANGE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TimeRange)
 
-class ReturnContent(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class ReturnContent(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _RETURNCONTENT
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.ReturnContent)
 
-class GetRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class GetRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _GETROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.GetRowRequest)
 
-class GetRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class GetRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _GETROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.GetRowResponse)
 
-class UpdateRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UpdateRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UPDATEROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UpdateRowRequest)
 
-class UpdateRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class UpdateRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _UPDATEROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.UpdateRowResponse)
 
-class PutRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class PutRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _PUTROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.PutRowRequest)
 
-class PutRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class PutRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _PUTROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.PutRowResponse)
 
-class DeleteRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DeleteRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DELETEROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DeleteRowRequest)
 
-class DeleteRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class DeleteRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _DELETEROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.DeleteRowResponse)
 
-class TableInBatchGetRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableInBatchGetRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEINBATCHGETROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableInBatchGetRowRequest)
 
-class BatchGetRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class BatchGetRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _BATCHGETROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.BatchGetRowRequest)
 
-class RowInBatchGetRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class RowInBatchGetRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _ROWINBATCHGETROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.RowInBatchGetRowResponse)
 
-class TableInBatchGetRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableInBatchGetRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEINBATCHGETROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableInBatchGetRowResponse)
 
-class BatchGetRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class BatchGetRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _BATCHGETROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.BatchGetRowResponse)
 
-class RowInBatchWriteRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class RowInBatchWriteRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _ROWINBATCHWRITEROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.RowInBatchWriteRowRequest)
 
-class TableInBatchWriteRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableInBatchWriteRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEINBATCHWRITEROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableInBatchWriteRowRequest)
 
-class BatchWriteRowRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class BatchWriteRowRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _BATCHWRITEROWREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.BatchWriteRowRequest)
 
-class RowInBatchWriteRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class RowInBatchWriteRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _ROWINBATCHWRITEROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.RowInBatchWriteRowResponse)
 
-class TableInBatchWriteRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class TableInBatchWriteRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _TABLEINBATCHWRITEROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.TableInBatchWriteRowResponse)
 
-class BatchWriteRowResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class BatchWriteRowResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _BATCHWRITEROWRESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.BatchWriteRowResponse)
 
-class GetRangeRequest(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class GetRangeRequest(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _GETRANGEREQUEST
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.GetRangeRequest)
 
-class GetRangeResponse(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
+class GetRangeResponse(message.Message, metaclass=reflection.GeneratedProtocolMessageType):
   DESCRIPTOR = _GETRANGERESPONSE
   
   # @@protoc_insertion_point(class_scope:com.aliyun.tablestore.protocol.GetRangeResponse)

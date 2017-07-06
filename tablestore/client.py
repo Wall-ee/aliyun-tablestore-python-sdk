@@ -4,7 +4,7 @@
 __all__ = ['OTSClient']
 
 import sys
-import urlparse
+import urllib.parse
 import time
 import _strptime
 
@@ -93,7 +93,7 @@ class OTSClient(object):
             self.logger = logging.getLogger(logger_name)
 
         # parse end point
-        scheme, netloc, path = urlparse.urlparse(end_point)[:3]
+        scheme, netloc, path = urllib.parse.urlparse(end_point)[:3]
         host = scheme + "://" + netloc
 
         if scheme != 'http' and scheme != 'https':
