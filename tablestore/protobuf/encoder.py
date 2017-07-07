@@ -602,7 +602,7 @@ class OTSProtoBufferEncoder(object):
         if return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(row.primary_key, row.attribute_columns))
+        proto.row_change = bytes(PlainBufferBuilder.serialize_for_update_row(row.primary_key, row.attribute_columns))
         return proto
 
     def _encode_delete_row(self, table_name, row, condition, return_type):
@@ -615,7 +615,7 @@ class OTSProtoBufferEncoder(object):
         if return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.primary_key = str(PlainBufferBuilder.serialize_for_delete_row(row.primary_key))
+        proto.primary_key = bytes(PlainBufferBuilder.serialize_for_delete_row(row.primary_key))
         return proto
 
     def _encode_batch_get_row(self, request):
@@ -638,8 +638,8 @@ class OTSProtoBufferEncoder(object):
         proto.direction = self._get_direction(direction)
         self._make_repeated_column_names(proto.columns_to_get, columns_to_get)
 
-        proto.inclusive_start_primary_key = str(PlainBufferBuilder.serialize_primary_key(inclusive_start_primary_key))
-        proto.exclusive_end_primary_key = str(PlainBufferBuilder.serialize_primary_key(exclusive_end_primary_key))
+        proto.inclusive_start_primary_key = bytes(PlainBufferBuilder.serialize_primary_key(inclusive_start_primary_key))
+        proto.exclusive_end_primary_key = bytes(PlainBufferBuilder.serialize_primary_key(exclusive_end_primary_key))
 
         if column_filter is not None:
             pb_filter = filter_pb2.Filter()
