@@ -95,7 +95,12 @@ class PlainBufferCodedInputStream(object):
             cell_check_sum = PlainBufferCrc8.crc_int64(cell_check_sum, double_int)
             self.read_tag()
             #long in 64bit system should be 8 bit long
-            double_value, = struct.unpack('d', struct.pack('q', double_int))
+            if const.SYS_BITS == 64:
+                double_value, = struct.unpack('d', struct.pack('q', double_int))
+            elif const.SYS_BITS == 32:
+                double_value, = struct.unpack('d', struct.pack('l', double_int))
+            else:
+                double_value, = struct.unpack('d', struct.pack('l', double_int))
             return (double_value, cell_check_sum)
         else:
             raise OTSClientError("Unsupported column type: " + str(column_type))
@@ -332,8 +337,12 @@ class PlainBufferCodedOutputStream(object):
             cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value.decode("utf-8"))
         elif isinstance(value, float):
             #in 64bit system  long shoud be 8 bytes,use the type of long long
-            double_in_long, = struct.unpack("q", struct.pack("d", value))
-            # double_in_long, = struct.unpack("l", struct.pack("d", value))
+            if const.SYS_BITS == 64:
+                double_in_long, = struct.unpack("q", struct.pack("d", value))
+            elif const.SYS_BITS == 32:
+                double_in_long, = struct.unpack("l", struct.pack("d", value))
+            else:
+                double_in_long, = struct.unpack("l", struct.pack("d", value))
             self.output_stream.write_raw_little_endian32(1 + LITTLE_ENDIAN_64_SIZE)
             self.output_stream.write_raw_byte(VT_DOUBLE)
             self.output_stream.write_double(value)

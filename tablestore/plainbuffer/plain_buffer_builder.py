@@ -8,11 +8,12 @@ from .plain_buffer_crc8 import *
 from .plain_buffer_stream import *
 from .plain_buffer_coded_stream import *
 
+
 class PlainBufferBuilder(object):
     @staticmethod
     def compute_primary_key_value_size(value):
         size = 1   # TAG_CELL_VALUE
-        size += const.LITTLE_ENDIAN_32_SIZE + 1  # length + type
+        size += const.LITTLE_ENDIAN_SIZE + 1  # length + type
 
         if value in [INF_MIN, INF_MAX, PK_AUTO_INCR]:
             size += 1
@@ -21,10 +22,10 @@ class PlainBufferBuilder(object):
         if isinstance(value, int) or isinstance(value, int):
             size += 8  #sizeof(int64_t)
         elif isinstance(value, str) or isinstance(value, str):
-            size += const.LITTLE_ENDIAN_32_SIZE
+            size += const.LITTLE_ENDIAN_SIZE
             size += len(value)
         elif isinstance(value, bytearray):
-            size += const.LITTLE_ENDIAN_32_SIZE
+            size += const.LITTLE_ENDIAN_SIZE
             size += len(value)
         else:
             raise OTSClientError("Unsupported primary key type:" + str(type(value)))
@@ -32,12 +33,12 @@ class PlainBufferBuilder(object):
        
     @staticmethod
     def compute_variant_value_size(value):
-        return PlainBufferBuilder.compute_primary_key_value_size(value) - const.LITTLE_ENDIAN_32_SIZE - 1
+        return PlainBufferBuilder.compute_primary_key_value_size(value) - const.LITTLE_ENDIAN_SIZE - 1
 
     @staticmethod
     def compute_primary_key_column_size(pk_name, pk_value):
         size = 1
-        size += 1 + const.LITTLE_ENDIAN_32_SIZE
+        size += 1 + const.LITTLE_ENDIAN_SIZE
         size += len(pk_name)
         size += PlainBufferBuilder.compute_primary_key_value_size(pk_value)
         size += 2
@@ -46,17 +47,17 @@ class PlainBufferBuilder(object):
     @staticmethod
     def compute_column_value_size(value):
         size = 1
-        size += const.LITTLE_ENDIAN_32_SIZE + 1
+        size += const.LITTLE_ENDIAN_SIZE + 1
 
         if isinstance(value, bool):
             size += 1
         elif isinstance(value, int) or isinstance(value, int): 
             size += LITTLE_ENDIAN_64_SIZE
         elif isinstance(value, str) or isinstance(value, str):
-            size += const.LITTLE_ENDIAN_32_SIZE
+            size += const.LITTLE_ENDIAN_SIZE
             size += len(value)
         elif isinstance(value, bytearray):
-            size += const.LITTLE_ENDIAN_32_SIZE
+            size += const.LITTLE_ENDIAN_SIZE
             size += len(value)
         elif isinstance(value, float):
             size += LITTLE_ENDIAN_64_SIZE
@@ -66,12 +67,12 @@ class PlainBufferBuilder(object):
 
     @staticmethod
     def compute_variant_value_size(column_value):
-        return PlainBufferBuilder.compute_column_value_size(column_value) - const.LITTLE_ENDIAN_32_SIZE - 1
+        return PlainBufferBuilder.compute_column_value_size(column_value) - const.LITTLE_ENDIAN_SIZE - 1
     
     @staticmethod
     def compute_column_size(column_name, column_value, timestamp = None):
         size = 1
-        size += 1 + const.LITTLE_ENDIAN_32_SIZE
+        size += 1 + const.LITTLE_ENDIAN_SIZE
         size += len(column_name)
         if column_value is not None:
             size += PlainBufferBuilder.compute_column_value_size(column_value) 
@@ -99,7 +100,7 @@ class PlainBufferBuilder(object):
     
     @staticmethod
     def compute_put_row_size(primary_key, attribute_columns):
-        size = const.LITTLE_ENDIAN_32_SIZE
+        size = const.LITTLE_ENDIAN_SIZE
         size += PlainBufferBuilder.compute_primary_key_size(primary_key)
 
         if len(attribute_columns) != 0:
@@ -115,7 +116,7 @@ class PlainBufferBuilder(object):
 
     @staticmethod
     def compute_update_row_size(primary_key, attribute_columns):
-        size = const.LITTLE_ENDIAN_32_SIZE
+        size = const.LITTLE_ENDIAN_SIZE
         size += PlainBufferBuilder.compute_primary_key_size(primary_key)
 
         if len(attribute_columns) != 0:
@@ -138,7 +139,7 @@ class PlainBufferBuilder(object):
     
     @staticmethod
     def compute_delete_row_size(primary_key):
-        size = const.LITTLE_ENDIAN_32_SIZE
+        size = const.LITTLE_ENDIAN_SIZE
         size += PlainBufferBuilder.compute_primary_key_size(primary_key)
         size += 3
         return size
@@ -163,7 +164,7 @@ class PlainBufferBuilder(object):
 
     @staticmethod
     def serialize_primary_key(primary_key):
-        buf_size = const.LITTLE_ENDIAN_32_SIZE
+        buf_size = const.LITTLE_ENDIAN_SIZE
         buf_size += PlainBufferBuilder.compute_primary_key_size(primary_key)
         buf_size += 2
 

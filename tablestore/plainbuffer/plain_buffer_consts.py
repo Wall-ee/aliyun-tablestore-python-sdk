@@ -36,3 +36,13 @@ const.LITTLE_ENDIAN_32_SIZE = 4
 const.LITTLE_ENDIAN_64_SIZE = 8
 const.MAX_BUFFER_SIZE = 64 * 1024 * 1024
 
+import platform
+const.SYS_BITS=int(platform.architecture()[0][:2])
+if const.SYS_BITS == 64:
+    const.LITTLE_ENDIAN_SIZE = const.LITTLE_ENDIAN_64_SIZE
+elif const.SYS_BITS == 32:
+    const.LITTLE_ENDIAN_SIZE = const.LITTLE_ENDIAN_32_SIZE
+else:
+    const.LITTLE_ENDIAN_SIZE = 4
+
+
