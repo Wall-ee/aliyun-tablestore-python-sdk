@@ -1,4 +1,5 @@
 # -*- coding: utf8 -*-
+#  @Author  : LiXiaoran
 
 import sys
 import struct
@@ -391,7 +392,7 @@ class PlainBufferCodedOutputStream(object):
 
         if timestamp is not None:
             self.write_tag(TAG_CELL_TIMESTAMP)
-            #timestamp in 64bit system should be different from 32bit system
+            #timestamp in 64bit system should be different from 32bit system TODO column could not add timestamp in the cell,it might be the 64 bit system of long type size
             self.output_stream.write_raw_little_endian64(timestamp)
             cell_check_sum = PlainBufferCrc8.crc_int64(cell_check_sum, timestamp)
         self.write_tag(TAG_CELL_CHECKSUM)

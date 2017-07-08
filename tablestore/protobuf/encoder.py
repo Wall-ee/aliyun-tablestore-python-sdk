@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf8 -*-# @Author  : LiXiaoran
 
 import google.protobuf.text_format as text_format
 
@@ -431,7 +431,7 @@ class OTSProtoBufferEncoder(object):
                 table_item.filter = pb_filter.SerializeToString()
 
             for pk in item.primary_keys:
-                table_item.primary_key.append(str(PlainBufferBuilder.serialize_primary_key(pk)))
+                table_item.primary_key.append(bytes(PlainBufferBuilder.serialize_primary_key(pk)))
             if item.token is not None:
                 for token in item.token:
                     table_item.token.append(token)
@@ -464,7 +464,7 @@ class OTSProtoBufferEncoder(object):
         if put_row_item.return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_put_row(
+        proto.row_change = bytes(PlainBufferBuilder.serialize_for_put_row(
                 put_row_item.row.primary_key, put_row_item.row.attribute_columns))
         proto.type = pb2.PUT
         return proto
@@ -478,7 +478,7 @@ class OTSProtoBufferEncoder(object):
         if update_row_item.return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_update_row(
+        proto.row_change = bytes(PlainBufferBuilder.serialize_for_update_row(
                 update_row_item.row.primary_key, update_row_item.row.attribute_columns))
         proto.type = pb2.UPDATE
         return proto
@@ -492,7 +492,7 @@ class OTSProtoBufferEncoder(object):
         if delete_row_item.return_type == ReturnType.RT_PK:
             proto.return_content.return_type = pb2.RT_PK
 
-        proto.row_change = str(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.row.primary_key))
+        proto.row_change = bytes(PlainBufferBuilder.serialize_for_delete_row(delete_row_item.row.primary_key))
         proto.type = pb2.DELETE
         return proto
 
