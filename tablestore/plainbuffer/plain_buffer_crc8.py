@@ -64,18 +64,28 @@ class PlainBufferCrc8(object):
 
     @staticmethod
     def crc_int8(crc, byte):
-        return CRC8_TABLE[((crc & 0xff)^byte)]
+        # return CRC8_TABLE[((crc & 0xff)^byte)]
+        crcChecker = crcmod.predefined.Crc('crc-8')
+        crcChecker.crcValue = crc
+        crcChecker.update(bytes([byte]))
+        crc = crcChecker.crcValue
+        return crc
 
     @staticmethod
     def crc_int32(crc, byte):
         for i in range(0, 4):
             crc = PlainBufferCrc8.crc_int8(crc, (byte>>(i*8)) & 0xff)
+        # crcChecker = crcmod.predefined.Crc('crc-8')
+        # crcChecker.crcValue = crc
+        # crcChecker.update([byte])
+        # crc = crcChecker.crcValue
         return crc
 
     @staticmethod
     def crc_int64(crc, byte):
         for i in range(0, 8):
             crc = PlainBufferCrc8.crc_int8(crc, (byte>>(i*8)) & 0xff)
+
         return crc
 
 
