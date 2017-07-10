@@ -31,7 +31,7 @@ class PlainBufferCodedInputStream(object):
             raise OTSClientError("Expect TAG_CELL_VALUE but it was " + str(self.get_last_tag()))
 
         self.input_stream.read_raw_little_endian32()
-        column_type = ord(self.input_stream.read_raw_byte().decode())
+        column_type = ord(self.input_stream.read_raw_byte().decode('utf-8'))
         if column_type == VT_INTEGER:
             int64_value = self.input_stream.read_int64()
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_INTEGER)
@@ -61,7 +61,7 @@ class PlainBufferCodedInputStream(object):
         if not self.check_last_tag_was(TAG_CELL_VALUE):
             raise OTSClientError("Expect TAG_CELL_VALUE but it was " + str(self.get_last_tag()))
         self.input_stream.read_raw_little_endian32()
-        column_type = ord(self.input_stream.read_raw_byte().decode())
+        column_type = ord(self.input_stream.read_raw_byte().decode('utf-8'))
         if column_type == VT_INTEGER:
             int64_value = self.input_stream.read_int64()
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_INTEGER)
@@ -126,7 +126,7 @@ class PlainBufferCodedInputStream(object):
         primary_key_value, cell_check_sum = self.read_primary_key_value(cell_check_sum)
         
         if self.get_last_tag() == TAG_CELL_CHECKSUM:
-            check_sum = ord(self.input_stream.read_raw_byte().decode())
+            check_sum = ord(self.input_stream.read_raw_byte().decode('utf-8'))
             if check_sum != cell_check_sum:
                 raise OTSClientError("Checksum mismatch. expected:" + str(check_sum) + ",actual:" + str(cell_check_sum))
             self.read_tag()
@@ -166,7 +166,7 @@ class PlainBufferCodedInputStream(object):
             self.read_tag()
 
         if self.get_last_tag() == TAG_CELL_CHECKSUM:
-            check_sum = ord(self.input_stream.read_raw_byte().decode())
+            check_sum = ord(self.input_stream.read_raw_byte().decode('utf-8'))
             if check_sum != cell_check_sum:                
                 raise OTSClientError("Checksum mismatch. expected:" + str(check_sum) + ",actual:" + str(cell_check_sum))
             self.read_tag()
@@ -189,9 +189,9 @@ class PlainBufferCodedInputStream(object):
         while self.check_last_tag_was(TAG_CELL):
             (name, value, row_check_sum) = self.read_primary_key_column(row_check_sum)
             if isinstance(name,bytes):
-                name = name.decode()
+                name = name.decode('utf-8')
             if isinstance(value,bytes):
-                value = value.decode()
+                value = value.decode('utf-8')
             primary_key.append((name, value))
 
         if self.check_last_tag_was(TAG_ROW_DATA):
@@ -199,9 +199,9 @@ class PlainBufferCodedInputStream(object):
             while self.check_last_tag_was(TAG_CELL):
                 column_name, column_value, timestamp, row_check_sum = self.read_column(row_check_sum)
                 if isinstance(column_name, bytes):
-                    column_name = column_name.decode()
+                    column_name = column_name.decode('utf-8')
                 if isinstance(column_value, bytes):
-                    column_value = column_value.decode()
+                    column_value = column_value.decode('utf-8')
                 attributes.append((column_name, column_value, timestamp))
 
         if self.check_last_tag_was(TAG_DELETE_ROW_MARKER):
@@ -211,7 +211,7 @@ class PlainBufferCodedInputStream(object):
             row_check_sum = PlainBufferCrc8.crc_int8(row_check_sum, 0)
 
         if self.check_last_tag_was(TAG_ROW_CHECKSUM):
-            check_sum = ord(self.input_stream.read_raw_byte().decode())
+            check_sum = ord(self.input_stream.read_raw_byte().decode('utf-8'))
             if check_sum != row_check_sum:
                 raise OTSClientError("Checksum is mismatch.")
             self.read_tag()

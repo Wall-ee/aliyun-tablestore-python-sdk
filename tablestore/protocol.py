@@ -68,7 +68,7 @@ class OTSProtocol(object):
         # The signature method is supposed to be HmacSHA1
         # A switch case is required if there is other methods available
         signature = base64.b64encode(hmac.new(
-            self.user_key.encode(), signature_string.encode(), hashlib.sha1
+            self.user_key.encode('utf-8'), signature_string.encode('utf-8'), hashlib.sha1
         ).digest())
         return signature
 

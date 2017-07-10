@@ -2,6 +2,7 @@
 #  @Author  : LiXiaoran
 
 import sys
+import crcmod
 
 CRC8_TABLE = [0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
               0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d,
@@ -36,19 +37,25 @@ CRC8_TABLE = [0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
               0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb,
               0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3]
 
+
+
 class PlainBufferCrc8(object):
     @staticmethod
     def update(crc, bytes_):
-        return PlainBufferCrc8._update(crc, bytes_)
+        crc8Checker = crcmod.predefined.Crc('crc-8')
+        crc8Checker.crcValue = crc
+        return PlainBufferCrc8._update(crc, bytes_,crc8Checker)
 
     @staticmethod
-    def _update(crc, bytes_):
+    def _update(crc, bytes_,crcChecker):
         if isinstance(bytes_, bytes):
-            bytes_ = bytes_.decode()
+            bytes_ = bytes_.decode('utf-8')
         elif not isinstance(bytes_, str):
             raise TypeError("must be string or buffer, actual:" + str(type(bytes_)))
-        for byte in bytes_:            
-            crc = CRC8_TABLE[((crc&0xff)^ord(byte))]
+        for byte in bytes_:
+            # crc = CRC8_TABLE[((crc&0xff)^ord(byte))]
+            crcChecker.update(byte.encode('utf-8'))
+            crc = crcChecker.crcValue
         return crc
 
     @staticmethod

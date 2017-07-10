@@ -19,13 +19,13 @@ class PlainBufferInputStream(object):
             return 0
 
         self.last_tag = self.read_raw_byte()
-        return ord(self.last_tag.decode())
+        return ord(self.last_tag.decode('utf-8'))
 
     def check_last_tag_was(self, tag):
-        return ord(self.last_tag.decode()) == tag
+        return ord(self.last_tag.decode('utf-8')) == tag
 
     def get_last_tag(self):
-        return ord(self.last_tag.decode())
+        return ord(self.last_tag.decode('utf-8'))
 
     def read_raw_byte(self):
         if self.is_at_end():
@@ -33,7 +33,7 @@ class PlainBufferInputStream(object):
 
         pos = self.cur_pos
         self.cur_pos += 1
-        return chr(self.buffer[pos]).encode()
+        return chr(self.buffer[pos]).encode('utf-8')
 
     def read_raw_little_endian64(self):
         return struct.unpack('<q', self.read_bytes(8))[0]
@@ -110,7 +110,7 @@ class PlainBufferOutputStream(object):
         if len(self.buffer) + len(value) > self.capacity:
             raise OTSClientError("The buffer is full.")
         if isinstance(value,str):
-            value = value.encode()
+            value = value.encode('utf-8')
         self.buffer += bytearray(value)
         # self.buffer.append(value)
         # self.buffer += value
