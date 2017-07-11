@@ -283,7 +283,7 @@ class PlainBufferCodedOutputStream(object):
             self.output_stream.write_raw_little_endian32(len(string_value))
             self.output_stream.write_bytes(string_value)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_STRING)
-            cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(string_value))
+            cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(string_value.encode('utf-8')))
             cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, string_value)
         elif isinstance(value, bytearray):
             binary_value = value
@@ -325,7 +325,8 @@ class PlainBufferCodedOutputStream(object):
             self.output_stream.write_raw_little_endian32(len(value))
             self.output_stream.write_bytes(value)
             cell_check_sum = PlainBufferCrc8.crc_int8(cell_check_sum, VT_STRING)
-            cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(value))
+            #需要求的是bytes的长度
+            cell_check_sum = PlainBufferCrc8.crc_int32(cell_check_sum, len(value.encode('utf-8')))
             cell_check_sum = PlainBufferCrc8.crc_string(cell_check_sum, value)
         elif isinstance(value, bytearray):
             prefix_length = LITTLE_ENDIAN_32_SIZE + 1
@@ -362,7 +363,7 @@ class PlainBufferCodedOutputStream(object):
             self.output_stream.write_raw_little_endian64(value)
         elif isinstance(value, str) or isinstance(value, str):
             self.output_stream.write_raw_byte(VT_STRING)
-            self.output_stream.write_raw_little_endian32(len(value))
+            self.output_stream.write_raw_little_endian32(len(value.encode('utf-8')))
             self.output_stream.write_bytes(value)
         elif isinstance(value, bytearray):
             self.output_stream.write_raw_byte(VT_BLOB)

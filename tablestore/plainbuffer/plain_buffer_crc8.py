@@ -3,7 +3,7 @@
 
 import sys
 import crcmod
-
+import struct
 CRC8_TABLE = [0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
               0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d,
               0x70, 0x77, 0x7e, 0x79, 0x6c, 0x6b, 0x62, 0x65,
@@ -42,20 +42,19 @@ CRC8_TABLE = [0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
 class PlainBufferCrc8(object):
     @staticmethod
     def update(crc, bytes_):
-        crc8Checker = crcmod.predefined.Crc('crc-8')
-        crc8Checker.crcValue = crc
-        return PlainBufferCrc8._update(crc, bytes_,crc8Checker)
+        return PlainBufferCrc8._update(crc, bytes_)
 
     @staticmethod
-    def _update(crc, bytes_,crcChecker):
+    def _update(crc, bytes_):
         if isinstance(bytes_, bytes):
             bytes_ = bytes_.decode('utf-8')
         elif not isinstance(bytes_, str):
             raise TypeError("must be string or buffer, actual:" + str(type(bytes_)))
-        for byte in bytes_:
-            # crc = CRC8_TABLE[((crc&0xff)^ord(byte))]
-            crcChecker.update(byte.encode('utf-8'))
-            crc = crcChecker.crcValue
+        crc8Checker = crcmod.predefined.Crc('crc-8')
+        crc = crc8Checker._crc(bytes_.encode('utf-8'),crc=crc)
+        # for byte in bytes_:
+        #     # crc = CRC8_TABLE[((crc&0xff)^ord(byte))]
+        #
         return crc
 
     @staticmethod
@@ -66,26 +65,21 @@ class PlainBufferCrc8(object):
     def crc_int8(crc, byte):
         # return CRC8_TABLE[((crc & 0xff)^byte)]
         crcChecker = crcmod.predefined.Crc('crc-8')
-        crcChecker.crcValue = crc
-        crcChecker.update(bytes([byte]))
-        crc = crcChecker.crcValue
+        crc = crcChecker._crc(bytes([byte]),crc=crc)
         return crc
 
     @staticmethod
     def crc_int32(crc, byte):
         for i in range(0, 4):
             crc = PlainBufferCrc8.crc_int8(crc, (byte>>(i*8)) & 0xff)
-        # crcChecker = crcmod.predefined.Crc('crc-8')
-        # crcChecker.crcValue = crc
-        # crcChecker.update([byte])
-        # crc = crcChecker.crcValue
         return crc
 
     @staticmethod
     def crc_int64(crc, byte):
-        for i in range(0, 8):
-            crc = PlainBufferCrc8.crc_int8(crc, (byte>>(i*8)) & 0xff)
-
+        # for i in range(0, 8):
+        #     crc = PlainBufferCrc8.crc_int8(crc, (byte>>(i*8)) & 0xff)
+        crcChecker = crcmod.predefined.Crc('crc-8')
+        crc=crcChecker._crc(struct.pack('q', byte), crc=crc)
         return crc
 
 
